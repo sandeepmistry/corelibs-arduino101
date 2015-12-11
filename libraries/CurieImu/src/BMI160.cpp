@@ -31,13 +31,13 @@ THE SOFTWARE.
 */
 #include "BMI160.h"
 
-#define BMI160_CHIP_ID 0xD1
+#define CURIE_IMU_CHIP_ID 0xD1
 
-#define BMI160_ACCEL_POWERUP_DELAY_MS 10
-#define BMI160_GYRO_POWERUP_DELAY_MS 100
+#define CURIE_IMU_ACCEL_POWERUP_DELAY_MS 10
+#define CURIE_IMU_GYRO_POWERUP_DELAY_MS 100
 
 /* Test the sign bit and set remaining MSBs if sign bit is set */
-#define BMI160_SIGN_EXTEND(val, from) \
+#define CURIE_IMU_SIGN_EXTEND(val, from) \
     (((val) & (1 << ((from) - 1))) ? (val | (((1 << (1 + (sizeof(val) << 3) - (from))) - 1) << (from))) : val)
 
 /******************************************************************************/
@@ -85,10 +85,10 @@ uint8_t BMI160Class::reg_read_bits(uint8_t reg, unsigned pos, unsigned len)
  * after start-up). This function also sets both the accelerometer and the gyroscope
  * to default range settings, namely +/- 2g and +/- 250 degrees/sec.
  */
-void BMI160Class::initialize()
+boolean BMI160Class::begin()
 {
     /* Issue a soft-reset to bring the device into a clean state */
-    reg_write(BMI160_RA_CMD, BMI160_CMD_SOFT_RESET);
+    reg_write(CURIE_IMU_RA_CMD, CURIE_IMU_CMD_SOFT_RESET);
     delay(1);
 
     /* Issue a dummy-read to force the device into SPI comms mode */
@@ -96,48 +96,45 @@ void BMI160Class::initialize()
     delay(1);
 
     /* Power up the accelerometer */
-    reg_write(BMI160_RA_CMD, BMI160_CMD_ACC_MODE_NORMAL);
+    reg_write(CURIE_IMU_RA_CMD, CURIE_IMU_CMD_ACC_MODE_NORMAL);
     delay(1);
     /* Wait for power-up to complete */
-    while (0x1 != reg_read_bits(BMI160_RA_PMU_STATUS,
-                                BMI160_ACC_PMU_STATUS_BIT,
-                                BMI160_ACC_PMU_STATUS_LEN))
+    while (0x1 != reg_read_bits(CURIE_IMU_RA_PMU_STATUS,
+                                CURIE_IMU_ACC_PMU_STATUS_BIT,
+                                CURIE_IMU_ACC_PMU_STATUS_LEN))
         delay(1);
 
     /* Power up the gyroscope */
-    reg_write(BMI160_RA_CMD, BMI160_CMD_GYR_MODE_NORMAL);
+    reg_write(CURIE_IMU_RA_CMD, CURIE_IMU_CMD_GYR_MODE_NORMAL);
     delay(1);
     /* Wait for power-up to complete */
-    while (0x1 != reg_read_bits(BMI160_RA_PMU_STATUS,
-                                BMI160_GYR_PMU_STATUS_BIT,
-                                BMI160_GYR_PMU_STATUS_LEN))
+    while (0x1 != reg_read_bits(CURIE_IMU_RA_PMU_STATUS,
+                                CURIE_IMU_GYR_PMU_STATUS_BIT,
+                                CURIE_IMU_GYR_PMU_STATUS_LEN))
         delay(1);
 
-    setFullScaleGyroRange(BMI160_GYRO_RANGE_250);
-    setFullScaleAccelRange(BMI160_ACCEL_RANGE_2G);
+    setGyroRange(CURIE_IMU_GYRO_RANGE_250);
+    setAccelRange(CURIE_IMU_ACCEL_RANGE_2G);
 
     /* Only PIN1 interrupts currently supported - map all interrupts to PIN1 */
-    reg_write(BMI160_RA_INT_MAP_0, 0xFF);
-    reg_write(BMI160_RA_INT_MAP_1, 0xF0);
-    reg_write(BMI160_RA_INT_MAP_2, 0x00);
+    reg_write(CURIE_IMU_RA_INT_MAP_0, 0xFF);
+    reg_write(CURIE_IMU_RA_INT_MAP_1, 0xF0);
+    reg_write(CURIE_IMU_RA_INT_MAP_2, 0x00);
+
+    /** Verify the SPI connection.
+    * MakgetGyroRatee sure the device is connected and responds as expected.
+    * @return True if connection is valid, false otherwise
+    */
+    return (CURIE_IMU_CHIP_ID == getDeviceID());
 }
 
 /** Get Device ID.
  * This register is used to verify the identity of the device (0b11010001, 0xD1).
  * @return Device ID (should be 0xD1)
- * @see BMI160_RA_CHIP_ID
+ * @see CURIE_IMU_RA_CHIP_ID
  */
-uint8_t BMI160Class::getDeviceID() {
-    return reg_read(BMI160_RA_CHIP_ID);
-}
-
-/** Verify the SPI connection.
- * Make sure the device is connected and responds as expected.
- * @return True if connection is valid, false otherwise
- */
-bool BMI160Class::testConnection()
-{
-    return (BMI160_CHIP_ID == getDeviceID());
+int BMI160Class::getDeviceID() {
+    return reg_read(CURIE_IMU_RA_CHIP_ID);
 }
 
 /** Get gyroscope output data rate.
@@ -156,25 +153,25 @@ bool BMI160Class::testConnection()
  * </pre>
  *
  * @return Current sample rate
- * @see BMI160_RA_GYRO_CONF
+ * @see CURIE_IMU_RA_GYRO_CONF
  * @see BMI160GyroRate
  */
-uint8_t BMI160Class::getGyroRate() {
-    return reg_read_bits(BMI160_RA_GYRO_CONF,
-                         BMI160_GYRO_RATE_SEL_BIT,
-                         BMI160_GYRO_RATE_SEL_LEN);
+int BMI160Class::getGyroRate(){
+    return reg_read_bits(CURIE_IMU_RA_GYRO_CONF,
+                         CURIE_IMU_GYRO_RATE_SEL_BIT,
+                         CURIE_IMU_GYRO_RATE_SEL_LEN);
 }
 
 /** Set gyroscope output data rate.
  * @param rate New output data rate
  * @see getGyroRate()
- * @see BMI160_GYRO_RATE_25HZ
- * @see BMI160_RA_GYRO_CONF
+ * @see CURIE_IMU_GYRO_RATE_25HZ
+ * @see CURIE_IMU_RA_GYRO_CONF
  */
-void BMI160Class::setGyroRate(uint8_t rate) {
-    reg_write_bits(BMI160_RA_GYRO_CONF, rate,
-                   BMI160_GYRO_RATE_SEL_BIT,
-                   BMI160_GYRO_RATE_SEL_LEN);
+void BMI160Class::setGyroRate(int rate) {
+    reg_write_bits(CURIE_IMU_RA_GYRO_CONF, rate,
+                   CURIE_IMU_GYRO_RATE_SEL_BIT,
+                   CURIE_IMU_GYRO_RATE_SEL_LEN);
 }
 
 /** Get accelerometer output data rate.
@@ -194,30 +191,30 @@ void BMI160Class::setGyroRate(uint8_t rate) {
  * </pre>
  *
  * @return Current sample rate
- * @see BMI160_RA_ACCEL_CONF
+ * @see CURIE_IMU_RA_ACCEL_CONF
  * @see BMI160AccelRate
  */
-uint8_t BMI160Class::getAccelRate() {
-    return reg_read_bits(BMI160_RA_ACCEL_CONF,
-                         BMI160_ACCEL_RATE_SEL_BIT,
-                         BMI160_ACCEL_RATE_SEL_LEN);
+int BMI160Class::getAccelRate() {
+    return reg_read_bits(CURIE_IMU_RA_ACCEL_CONF,
+                         CURIE_IMU_ACCEL_RATE_SEL_BIT,
+                         CURIE_IMU_ACCEL_RATE_SEL_LEN);
 }
 
 /** Set accelerometer output data rate.
  * @param rate New output data rate
  * @see getAccelRate()
- * @see BMI160_RA_ACCEL_CONF
+ * @see CURIE_IMU_RA_ACCEL_CONF
  */
-void BMI160Class::setAccelRate(uint8_t rate) {
-    reg_write_bits(BMI160_RA_ACCEL_CONF, rate,
-                   BMI160_ACCEL_RATE_SEL_BIT,
-                   BMI160_ACCEL_RATE_SEL_LEN);
+void BMI160Class::setAccelRate(int rate) {
+    reg_write_bits(CURIE_IMU_RA_ACCEL_CONF, rate,
+                   CURIE_IMU_ACCEL_RATE_SEL_BIT,
+                   CURIE_IMU_ACCEL_RATE_SEL_LEN);
 }
 
 /** Get gyroscope digital low-pass filter mode.
  * The gyro_bwp parameter sets the gyroscope digital low pass filter configuration.
  *
- * When the filter mode is set to Normal (@see BMI160_DLPF_MODE_NORM), the filter
+ * When the filter mode is set to Normal (@see CURIE_IMU_DLPF_MODE_NORM), the filter
  * bandwidth for each respective gyroscope output data rates is shown in the table below:
  *
  * <pre>
@@ -233,36 +230,36 @@ void BMI160Class::setAccelRate(uint8_t rate) {
  *  3200Hz | 890Hz
  * </pre>
  *
- * When the filter mode is set to OSR2 (@see BMI160_DLPF_MODE_OSR2), the filter
+ * When the filter mode is set to OSR2 (@see CURIE_IMU_DLPF_MODE_OSR2), the filter
  * bandwidths above are approximately halved.
  *
- * When the filter mode is set to OSR4 (@see BMI160_DLPF_MODE_OSR4), the filter
+ * When the filter mode is set to OSR4 (@see CURIE_IMU_DLPF_MODE_OSR4), the filter
  * bandwidths above are approximately 4 times smaller.
  *
  * @return DLFP configuration
- * @see BMI160_RA_GYRO_CONF
+ * @see CURIE_IMU_RA_GYRO_CONF
  * @see BMI160DLPFMode
  */
-uint8_t BMI160Class::getGyroDLPFMode() {
-    return reg_read_bits(BMI160_RA_GYRO_CONF,
-                         BMI160_GYRO_DLPF_SEL_BIT,
-                         BMI160_GYRO_DLPF_SEL_LEN);
+int BMI160Class::getGyroFilterMode() {
+    return reg_read_bits(CURIE_IMU_RA_GYRO_CONF,
+                         CURIE_IMU_GYRO_DLPF_SEL_BIT,
+                         CURIE_IMU_GYRO_DLPF_SEL_LEN);
 }
 
 /** Set gyroscope digital low-pass filter configuration.
  * @param mode New DLFP configuration setting
  * @see getGyroDLPFMode()
  */
-void BMI160Class::setGyroDLPFMode(uint8_t mode) {
-    return reg_write_bits(BMI160_RA_GYRO_CONF, mode,
-                          BMI160_GYRO_DLPF_SEL_BIT,
-                          BMI160_GYRO_DLPF_SEL_LEN);
+void BMI160Class::setGyroFilterMode(int bandwidth) {
+    return reg_write_bits(CURIE_IMU_RA_GYRO_CONF, bandwidth,
+                          CURIE_IMU_GYRO_DLPF_SEL_BIT,
+                          CURIE_IMU_GYRO_DLPF_SEL_LEN);
 }
 
 /** Get accelerometer digital low-pass filter mode.
  * The acc_bwp parameter sets the accelerometer digital low pass filter configuration.
  *
- * When the filter mode is set to Normal (@see BMI160_DLPF_MODE_NORM), the filter
+ * When the filter mode is set to Normal (@see CURIE_IMU_DLPF_MODE_NORM), the filter
  * bandwidth for each respective accelerometer output data rates is shown in the table below:
  *
  * <pre>
@@ -278,30 +275,30 @@ void BMI160Class::setGyroDLPFMode(uint8_t mode) {
  *  1600Hz | 684Hz (353Hz for Z axis)
  * </pre>
  *
- * When the filter mode is set to OSR2 (@see BMI160_DLPF_MODE_OSR2), the filter
+ * When the filter mode is set to OSR2 (@see CURIE_IMU_DLPF_MODE_OSR2), the filter
  * bandwidths above are approximately halved.
  *
- * When the filter mode is set to OSR4 (@see BMI160_DLPF_MODE_OSR4), the filter
+ * When the filter mode is set to OSR4 (@see CURIE_IMU_DLPF_MODE_OSR4), the filter
  * bandwidths above are approximately 4 times smaller.
  *
  * @return DLFP configuration
- * @see BMI160_RA_GYRO_CONF
+ * @see CURIE_IMU_RA_GYRO_CONF
  * @see BMI160DLPFMode
  */
-uint8_t BMI160Class::getAccelDLPFMode() {
-    return reg_read_bits(BMI160_RA_ACCEL_CONF,
-                         BMI160_ACCEL_DLPF_SEL_BIT,
-                         BMI160_ACCEL_DLPF_SEL_LEN);
+int BMI160Class::getAccelFilterMode() {
+    return reg_read_bits(CURIE_IMU_RA_ACCEL_CONF,
+                         CURIE_IMU_ACCEL_DLPF_SEL_BIT,
+                         CURIE_IMU_ACCEL_DLPF_SEL_LEN);
 }
 
 /** Set accelerometer digital low-pass filter configuration.
  * @param mode New DLFP configuration setting
  * @see getAccelDLPFMode()
  */
-void BMI160Class::setAccelDLPFMode(uint8_t mode) {
-    return reg_write_bits(BMI160_RA_ACCEL_CONF, mode,
-                          BMI160_ACCEL_DLPF_SEL_BIT,
-                          BMI160_ACCEL_DLPF_SEL_LEN);
+void BMI160Class::setAccelFilterMode(int bandwidth) {
+    return reg_write_bits(CURIE_IMU_RA_ACCEL_CONF, bandwidth,
+                          CURIE_IMU_ACCEL_DLPF_SEL_BIT,
+                          CURIE_IMU_ACCEL_DLPF_SEL_LEN);
 }
 
 /** Get full-scale gyroscope range.
@@ -317,23 +314,23 @@ void BMI160Class::setAccelDLPFMode(uint8_t mode) {
  * </pre>
  *
  * @return Current full-scale gyroscope range setting
- * @see BMI160_RA_GYRO_RANGE
+ * @see CURIE_IMU_RA_GYRO_RANGE
  * @see BMI160GyroRange
  */
-uint8_t BMI160Class::getFullScaleGyroRange() {
-    return reg_read_bits(BMI160_RA_GYRO_RANGE,
-                         BMI160_GYRO_RANGE_SEL_BIT,
-                         BMI160_GYRO_RANGE_SEL_LEN);
+int BMI160Class::getGyroRange() {
+    return reg_read_bits(CURIE_IMU_RA_GYRO_RANGE,
+                         CURIE_IMU_GYRO_RANGE_SEL_BIT,
+                         CURIE_IMU_GYRO_RANGE_SEL_LEN);
 }
 
 /** Set full-scale gyroscope range.
  * @param range New full-scale gyroscope range value
  * @see getFullScaleGyroRange()
  */
-void BMI160Class::setFullScaleGyroRange(uint8_t range) {
-    reg_write_bits(BMI160_RA_GYRO_RANGE, range,
-                   BMI160_GYRO_RANGE_SEL_BIT,
-                   BMI160_GYRO_RANGE_SEL_LEN);
+void BMI160Class::setGyroRange(int range) {
+    reg_write_bits(CURIE_IMU_RA_GYRO_RANGE, range,
+                   CURIE_IMU_GYRO_RANGE_SEL_BIT,
+                   CURIE_IMU_GYRO_RANGE_SEL_LEN);
 }
 
 /** Get full-scale accelerometer range.
@@ -348,13 +345,13 @@ void BMI160Class::setFullScaleGyroRange(uint8_t range) {
  * </pre>
  *
  * @return Current full-scale accelerometer range setting
- * @see BMI160_RA_ACCEL_RANGE
+ * @see CURIE_IMU_RA_ACCEL_RANGE
  * @see BMI160AccelRange
  */
-uint8_t BMI160Class::getFullScaleAccelRange() {
-    return reg_read_bits(BMI160_RA_ACCEL_RANGE,
-                         BMI160_ACCEL_RANGE_SEL_BIT,
-                         BMI160_ACCEL_RANGE_SEL_LEN);
+int BMI160Class::getAccelRange() {
+    return reg_read_bits(CURIE_IMU_RA_ACCEL_RANGE,
+                         CURIE_IMU_ACCEL_RANGE_SEL_BIT,
+                         CURIE_IMU_ACCEL_RANGE_SEL_LEN);
 }
 
 /** Set full-scale accelerometer range.
@@ -362,35 +359,14 @@ uint8_t BMI160Class::getFullScaleAccelRange() {
  * @see getFullScaleAccelRange()
  * @see BMI160AccelRange
  */
-void BMI160Class::setFullScaleAccelRange(uint8_t range) {
-    reg_write_bits(BMI160_RA_ACCEL_RANGE, range,
-                   BMI160_ACCEL_RANGE_SEL_BIT,
-                   BMI160_ACCEL_RANGE_SEL_LEN);
+void BMI160Class::setAccelRange(int range) {
+    reg_write_bits(CURIE_IMU_RA_ACCEL_RANGE, range,
+                   CURIE_IMU_ACCEL_RANGE_SEL_BIT,
+                   CURIE_IMU_ACCEL_RANGE_SEL_LEN);
 }
 
-/** Get accelerometer offset compensation enabled value.
- * @see getXAccelOffset()
- * @see BMI160_RA_OFFSET_6
- */
-bool BMI160Class::getAccelOffsetEnabled() {
-    return !!(reg_read_bits(BMI160_RA_OFFSET_6,
-                            BMI160_ACC_OFFSET_EN,
-                            1));
-}
-
-/** Set accelerometer offset compensation enabled value.
- * @see getXAccelOffset()
- * @see BMI160_RA_OFFSET_6
- */
-void BMI160Class::setAccelOffsetEnabled(bool enabled) {
-    reg_write_bits(BMI160_RA_OFFSET_6, enabled ? 0x1 : 0,
-                   BMI160_ACC_OFFSET_EN,
-                   1);
-}
-
-/** Execute internal calibration to generate Accelerometer X-Axis offset value.
- * This populates the Accelerometer offset compensation value for the X-Axis only.
- * These can be retrieved using the getXAccelOffset() methods.
+/** Execute internal calibration to generate Accelerometer Axes offset value.
+ * These can be retrieved using the getAccelOffset() methods.
  * Note that this procedure may take up to 250ms to complete.
  *
  * IMPORTANT: The user MUST ensure NO movement and correct orientation of the
@@ -400,184 +376,117 @@ void BMI160Class::setAccelOffsetEnabled(bool enabled) {
  *
  * To enable offset compensation, @see setAccelOffsetEnabled()
  *
- * @param target X-axis target value (0 = 0g, 1 = +1g, -1 = -1g)
+ * @param target X/Y/Z-axis target value (0 = 0g, 1 = +1g, -1 = -1g)
  * @see setAccelOffsetEnabled()
+ * @see getAccelOffset(int axis)
+ * @see CURIE_IMU_RA_FOC_CONF
+ * @see CURIE_IMU_RA_CMD
+ */
+void BMI160Class::autoCalibrateAccelOffset(int axis, int target){
+    int axisBit = 0;
+    switch(axis){
+        case X_AXIS:
+            axisBit = CURIE_IMU_FOC_ACC_X_BIT;
+            break;
+        case Y_AXIS:
+            axisBit = CURIE_IMU_FOC_ACC_Y_BIT;
+            break;
+        case Z_AXIS:
+            axisBit = CURIE_IMU_FOC_ACC_Z_BIT;
+            break;
+        default:break;
+    }
+    uint8_t foc_conf;
+    if (target == 1)
+        foc_conf = (0x1 << axisBit);
+    else if (target == -1)
+        foc_conf = (0x2 << axisBit);
+    else if (target == 0)
+        foc_conf = (0x3 << axisBit);
+    else
+        return;  /* Invalid target value */
+
+    reg_write(CURIE_IMU_RA_FOC_CONF, foc_conf);
+    reg_write(CURIE_IMU_RA_CMD, CURIE_IMU_CMD_START_FOC);
+    while (!(reg_read_bits(CURIE_IMU_RA_STATUS,
+                           CURIE_IMU_STATUS_FOC_RDY,
+                           1)))
+        delay(1);
+}
+
+
+/** Get offset compensation value for accelerometer data.
+ * Each axis accessed by entering X/Y/Z_AXIS as axis argument
+ * The value is represented as an 8-bit two-complement number in
+ * units of 3.9mg per LSB.
+ * @see CURIE_IMU_RA_OFFSET_0
+ */
+int BMI160Class::getAccelOffset(int axis){
+    switch(axis){
+        case X_AXIS: return reg_read(CURIE_IMU_RA_OFFSET_0);
+            break;
+        case Y_AXIS: return reg_read(CURIE_IMU_RA_OFFSET_1);
+            break;
+        case Z_AXIS: return reg_read(CURIE_IMU_RA_OFFSET_2);
+            break;
+        default:    return 0;
+            break;
+    }
+}
+
+/** Set offset compensation value for accelerometer axes data.
+ * This is used for applying manual calibration constants if required.
+ * For auto-calibration, @see autoCalibrateAccelOffset().
+ * @see getAccelOffset()
+ * @see CURIE_IMU_RA_OFFSET_0-1-2.
+ */
+void BMI160Class::setAccelOffset(int axis, int offset){
+    switch(axis){
+        case X_AXIS: reg_write(CURIE_IMU_RA_OFFSET_0, offset);
+            break;
+        case Y_AXIS: reg_write(CURIE_IMU_RA_OFFSET_1, offset);
+            break;
+        case Z_AXIS: reg_write(CURIE_IMU_RA_OFFSET_2, offset);
+            break;
+        default:
+            break;
+    }
+    readAcceleration(axis);
+}
+
+/** Set accel/gyro offset compensation enabled value.
  * @see getXAccelOffset()
- * @see BMI160_RA_FOC_CONF
- * @see BMI160_RA_CMD
+ * @see CURIE_IMU_RA_OFFSET_6
  */
-void BMI160Class::autoCalibrateXAccelOffset(int target) {
-    uint8_t foc_conf;
-    if (target == 1)
-        foc_conf = (0x1 << BMI160_FOC_ACC_X_BIT);
-    else if (target == -1)
-        foc_conf = (0x2 << BMI160_FOC_ACC_X_BIT);
-    else if (target == 0)
-        foc_conf = (0x3 << BMI160_FOC_ACC_X_BIT);
-    else
-        return;  /* Invalid target value */
 
-    reg_write(BMI160_RA_FOC_CONF, foc_conf);
-    reg_write(BMI160_RA_CMD, BMI160_CMD_START_FOC);
-    while (!(reg_read_bits(BMI160_RA_STATUS,
-                           BMI160_STATUS_FOC_RDY,
-                           1)))
-        delay(1);
+void BMI160Class::enableAccelOffset(boolean enabled){
+    reg_write_bits(CURIE_IMU_RA_OFFSET_6, enabled ? 0x01 : 0,
+                  CURIE_IMU_ACC_OFFSET_EN,
+                  1) ;
 }
 
-/** Execute internal calibration to generate Accelerometer Y-Axis offset value.
- * This populates the Accelerometer offset compensation value for the Y-Axis only.
- * These can be retrieved using the getYAccelOffset() methods.
- * Note that this procedure may take up to 250ms to complete.
- *
- * IMPORTANT: The user MUST ensure NO movement and correct orientation of the
- * BMI160 device occurs while this auto-calibration process is active.
- * For example, to calibrate to a target of 0g on the Y-axis, the BMI160 device
- * must be resting horizontally as shown in Section 5.2 of the BMI160 Data Sheet.
- *
- * To enable offset compensation, @see setAccelOffsetEnabled()
- *
- * @param target Y-axis target value (0 = 0g, 1 = +1g, -1 = -1g)
- * @see setAccelOffsetEnabled()
- * @see getYAccelOffset()
- * @see BMI160_RA_FOC_CONF
- * @see BMI160_RA_CMD
- */
-void BMI160Class::autoCalibrateYAccelOffset(int target) {
-    uint8_t foc_conf;
-    if (target == 1)
-        foc_conf = (0x1 << BMI160_FOC_ACC_Y_BIT);
-    else if (target == -1)
-        foc_conf = (0x2 << BMI160_FOC_ACC_Y_BIT);
-    else if (target == 0)
-        foc_conf = (0x3 << BMI160_FOC_ACC_Y_BIT);
-    else
-        return;  /* Invalid target value */
-
-    reg_write(BMI160_RA_FOC_CONF, foc_conf);
-    reg_write(BMI160_RA_CMD, BMI160_CMD_START_FOC);
-    while (!(reg_read_bits(BMI160_RA_STATUS,
-                           BMI160_STATUS_FOC_RDY,
-                           1)))
-        delay(1);
+void BMI160Class::enableGyroOffset(boolean enabled){
+    reg_write_bits(CURIE_IMU_RA_OFFSET_6, enabled ? 0x01 : 0,
+                  CURIE_IMU_GYR_OFFSET_EN,
+                  1) ;
 }
 
-/** Execute internal calibration to generate Accelerometer Z-Axis offset value.
- * This populates the Accelerometer offset compensation value for the Z-Axis only.
- * These can be retrieved using the getZAccelOffset() methods.
- * Note that this procedure may take up to 250ms to complete.
- *
- * IMPORTANT: The user MUST ensure NO movement and correct orientation of the
- * BMI160 device occurs while this auto-calibration process is active.
- * For example, to calibrate to a target of +1g on the Z-axis, the BMI160 device
- * must be resting horizontally as shown in Section 5.2 of the BMI160 Data Sheet.
- *
- * To enable offset compensation, @see setAccelOffsetEnabled()
- *
- * @param target Z-axis target value (0 = 0g, 1 = +1g, -1 = -1g)
- * @see setAccelOffsetEnabled()
- * @see getZAccelOffset()
- * @see BMI160_RA_FOC_CONF
- * @see BMI160_RA_CMD
- */
-void BMI160Class::autoCalibrateZAccelOffset(int target) {
-    uint8_t foc_conf;
-    if (target == 1)
-        foc_conf = (0x1 << BMI160_FOC_ACC_Z_BIT);
-    else if (target == -1)
-        foc_conf = (0x2 << BMI160_FOC_ACC_Z_BIT);
-    else if (target == 0)
-        foc_conf = (0x3 << BMI160_FOC_ACC_Z_BIT);
-    else
-        return;  /* Invalid target value */
 
-    reg_write(BMI160_RA_FOC_CONF, foc_conf);
-    reg_write(BMI160_RA_CMD, BMI160_CMD_START_FOC);
-    while (!(reg_read_bits(BMI160_RA_STATUS,
-                           BMI160_STATUS_FOC_RDY,
-                           1)))
-        delay(1);
-}
-
-/** Get offset compensation value for accelerometer X-axis data.
- * The value is represented as an 8-bit two-complement number in
- * units of 3.9mg per LSB.
- * @see BMI160_RA_OFFSET_0
- */
-int8_t BMI160Class::getXAccelOffset() {
-    return reg_read(BMI160_RA_OFFSET_0);
-}
-
-/** Set offset compensation value for accelerometer X-axis data.
- * This is used for applying manual calibration constants if required.
- * For auto-calibration, @see autoCalibrateXAccelOffset().
- * @see getXAccelOffset()
- * @see BMI160_RA_OFFSET_0
- */
-void BMI160Class::setXAccelOffset(int8_t offset) {
-    reg_write(BMI160_RA_OFFSET_0, offset);
-    getAccelerationX(); /* Read and discard the next data value */
-}
-
-/** Get offset compensation value for accelerometer Y-axis data.
- * The value is represented as an 8-bit two-complement number in
- * units of 3.9mg per LSB.
- * @see BMI160_RA_OFFSET_1
- */
-int8_t BMI160Class::getYAccelOffset() {
-    return reg_read(BMI160_RA_OFFSET_1);
-}
-
-/** Set offset compensation value for accelerometer Y-axis data.
- * This is used for applying manual calibration constants if required.
- * For auto-calibration, @see autoCalibrateYAccelOffset().
- * @see getYAccelOffset()
- * @see BMI160_RA_OFFSET_1
- */
-void BMI160Class::setYAccelOffset(int8_t offset) {
-    reg_write(BMI160_RA_OFFSET_1, offset);
-    getAccelerationY(); /* Read and discard the next data value */
-}
-
-/** Get offset compensation value for accelerometer Z-axis data.
- * The value is represented as an 8-bit two-complement number in
- * units of 3.9mg per LSB.
- * @see BMI160_RA_OFFSET_2
- */
-int8_t BMI160Class::getZAccelOffset() {
-    return reg_read(BMI160_RA_OFFSET_2);
-}
-
-/** Set offset compensation value for accelerometer Z-axis data.
- * This is used for applying manual calibration constants if required.
- * For auto-calibration, @see autoCalibrateZAccelOffset().
- * @see getZAccelOffset()
- * @see BMI160_RA_OFFSET_2
- */
-void BMI160Class::setZAccelOffset(int8_t offset) {
-    reg_write(BMI160_RA_OFFSET_2, offset);
-    getAccelerationZ(); /* Read and discard the next data value */
-}
-
-/** Get gyroscope offset compensation enabled value.
+/** Get gyro/accel offset compensation enabled value.
  * @see getXGyroOffset()
- * @see BMI160_RA_OFFSET_6
+ * @see CURIE_IMU_RA_OFFSET_6
  */
-bool BMI160Class::getGyroOffsetEnabled() {
-    return !!(reg_read_bits(BMI160_RA_OFFSET_6,
-                            BMI160_GYR_OFFSET_EN,
+boolean BMI160Class::accelOffsetEnabled(){
+    return !!(reg_read_bits(CURIE_IMU_RA_OFFSET_6,
+                            CURIE_IMU_ACC_OFFSET_EN,
+                            1));
+}
+boolean BMI160Class::gyroOffsetEnabled(){
+    return !!(reg_read_bits(CURIE_IMU_RA_OFFSET_6,
+                            CURIE_IMU_GYR_OFFSET_EN,
                             1));
 }
 
-/** Set gyroscope offset compensation enabled value.
- * @see getXGyroOffset()
- * @see BMI160_RA_OFFSET_6
- */
-void BMI160Class::setGyroOffsetEnabled(bool enabled) {
-    reg_write_bits(BMI160_RA_OFFSET_6, enabled ? 0x1 : 0,
-                   BMI160_GYR_OFFSET_EN,
-                   1) ;
-}
 
 /** Execute internal calibration to generate Gyro offset values.
  * This populates the Gyro offset compensation values for all 3 axes.
@@ -592,15 +501,15 @@ void BMI160Class::setGyroOffsetEnabled(bool enabled) {
  * @see getXGyroOffset()
  * @see getYGyroOffset()
  * @see getZGyroOffset()
- * @see BMI160_RA_FOC_CONF
- * @see BMI160_RA_CMD
+ * @see CURIE_IMU_RA_FOC_CONF
+ * @see CURIE_IMU_RA_CMD
  */
 void BMI160Class::autoCalibrateGyroOffset() {
-    uint8_t foc_conf = (1 << BMI160_FOC_GYR_EN);
-    reg_write(BMI160_RA_FOC_CONF, foc_conf);
-    reg_write(BMI160_RA_CMD, BMI160_CMD_START_FOC);
-    while (!(reg_read_bits(BMI160_RA_STATUS,
-                           BMI160_STATUS_FOC_RDY,
+    uint8_t foc_conf = (1 << CURIE_IMU_FOC_GYR_EN);
+    reg_write(CURIE_IMU_RA_FOC_CONF, foc_conf);
+    reg_write(CURIE_IMU_RA_CMD, CURIE_IMU_CMD_START_FOC);
+    while (!(reg_read_bits(CURIE_IMU_RA_STATUS,
+                           CURIE_IMU_STATUS_FOC_RDY,
                            1)))
         delay(1);
 }
@@ -608,88 +517,60 @@ void BMI160Class::autoCalibrateGyroOffset() {
 /** Get offset compensation value for gyroscope X-axis data.
  * The value is represented as an 10-bit two-complement number in
  * units of 0.061 degrees/s per LSB (sign-extended for int16_t type).
- * @see BMI160_RA_OFFSET_3
- * @see BMI160_RA_OFFSET_6
+ * @see CURIE_IMU_RA_OFFSET_3
+ * @see CURIE_IMU_RA_OFFSET_6
  */
-int16_t BMI160Class::getXGyroOffset() {
-    int16_t offset = reg_read(BMI160_RA_OFFSET_3);
-    offset |= (int16_t)(reg_read_bits(BMI160_RA_OFFSET_6,
-                                      BMI160_GYR_OFFSET_X_MSB_BIT,
-                                      BMI160_GYR_OFFSET_X_MSB_LEN)) << 8;
-    return BMI160_SIGN_EXTEND(offset, 10);
+int BMI160Class::getGyroOffset(int axis){
+    int offsetRegister = 0;
+    int mostSignifBit = 0;
+    switch(axis){
+        case X_AXIS:    offsetRegister = CURIE_IMU_RA_OFFSET_3;
+            mostSignifBit = CURIE_IMU_GYR_OFFSET_X_MSB_BIT;
+            break;
+        case Y_AXIS:    offsetRegister = CURIE_IMU_RA_OFFSET_4;
+            mostSignifBit = CURIE_IMU_GYR_OFFSET_Y_MSB_BIT;
+            break;
+        case Z_AXIS:    offsetRegister = CURIE_IMU_RA_OFFSET_5;
+            mostSignifBit = CURIE_IMU_GYR_OFFSET_Z_MSB_BIT;
+            break;
+        default:    break;
+    }
+    int16_t offset = reg_read(offsetRegister);
+    offset |= (int16_t)(reg_read_bits(CURIE_IMU_RA_OFFSET_6,
+                                      mostSignifBit,
+                                      CURIE_IMU_GYR_OFFSET_MSB_LEN)) << 8;
+    return CURIE_IMU_SIGN_EXTEND(offset, 10);
 }
 
-/** Set offset compensation value for gyroscope X-axis data.
+/** Set offset compensation value for gyroscope data
  * This is used for applying manual calibration constants if required.
  * For auto-calibration, @see autoCalibrateGyroOffset().
  * @see getXGyroOffset()
- * @see BMI160_RA_OFFSET_3
- * @see BMI160_RA_OFFSET_6
+ * @see CURIE_IMU_RA_OFFSET_3-4-5
+ * @see CURIE_IMU_RA_OFFSET_6
  */
-void BMI160Class::setXGyroOffset(int16_t offset) {
-    reg_write(BMI160_RA_OFFSET_3, offset);
-    reg_write_bits(BMI160_RA_OFFSET_6, offset >> 8,
-                   BMI160_GYR_OFFSET_X_MSB_BIT,
-                   BMI160_GYR_OFFSET_X_MSB_LEN);
-    getRotationX(); /* Read and discard the next data value */
-}
-
-/** Get offset compensation value for gyroscope Y-axis data.
- * The value is represented as an 10-bit two-complement number in
- * units of 0.061 degrees/s per LSB (sign-extended for int16_t type).
- * @see BMI160_RA_OFFSET_4
- * @see BMI160_RA_OFFSET_6
- */
-int16_t BMI160Class::getYGyroOffset() {
-    int16_t offset = reg_read(BMI160_RA_OFFSET_4);
-    offset |= (int16_t)(reg_read_bits(BMI160_RA_OFFSET_6,
-                                      BMI160_GYR_OFFSET_Y_MSB_BIT,
-                                      BMI160_GYR_OFFSET_Y_MSB_LEN)) << 8;
-    return BMI160_SIGN_EXTEND(offset, 10);
-}
-
-/** Set offset compensation value for gyroscope Y-axis data.
- * This is used for applying manual calibration constants if required.
- * For auto-calibration, @see autoCalibrateGyroOffset().
- * @see getYGyroOffset()
- * @see BMI160_RA_OFFSET_4
- * @see BMI160_RA_OFFSET_6
- */
-void BMI160Class::setYGyroOffset(int16_t offset) {
-    reg_write(BMI160_RA_OFFSET_4, offset);
-    reg_write_bits(BMI160_RA_OFFSET_6, offset >> 8,
-                   BMI160_GYR_OFFSET_Y_MSB_BIT,
-                   BMI160_GYR_OFFSET_Y_MSB_LEN);
-    getRotationY(); /* Read and discard the next data value */
-}
-
-/** Get offset compensation value for gyroscope Z-axis data.
- * The value is represented as an 10-bit two-complement number in
- * units of 0.061 degrees/s per LSB (sign-extended for int16_t type).
- * @see BMI160_RA_OFFSET_5
- * @see BMI160_RA_OFFSET_6
- */
-int16_t BMI160Class::getZGyroOffset() {
-    int16_t offset = reg_read(BMI160_RA_OFFSET_5);
-    offset |= (int16_t)(reg_read_bits(BMI160_RA_OFFSET_6,
-                                      BMI160_GYR_OFFSET_Z_MSB_BIT,
-                                      BMI160_GYR_OFFSET_Z_MSB_LEN)) << 8;
-    return BMI160_SIGN_EXTEND(offset, 10);
-}
-
-/** Set offset compensation value for gyroscope Z-axis data.
- * This is used for applying manual calibration constants if required.
- * For auto-calibration, @see autoCalibrateGyroOffset().
- * @see getZGyroOffset()
- * @see BMI160_RA_OFFSET_5
- * @see BMI160_RA_OFFSET_6
- */
-void BMI160Class::setZGyroOffset(int16_t offset) {
-    reg_write(BMI160_RA_OFFSET_5, offset);
-    reg_write_bits(BMI160_RA_OFFSET_6, offset >> 8,
-                   BMI160_GYR_OFFSET_Z_MSB_BIT,
-                   BMI160_GYR_OFFSET_Z_MSB_LEN);
-    getRotationZ(); /* Read and discard the next data value */
+void BMI160Class::setGyroOffset(int axis, int offset){
+    int offsetRegister = 0;
+    int mostSignifBit = 0;
+    switch(axis){
+        case X_AXIS:
+            offsetRegister = CURIE_IMU_RA_OFFSET_3;
+            mostSignifBit = CURIE_IMU_GYR_OFFSET_X_MSB_BIT;
+            break;
+        case Y_AXIS:
+            offsetRegister = CURIE_IMU_RA_OFFSET_4;
+            mostSignifBit = CURIE_IMU_GYR_OFFSET_Y_MSB_BIT;
+            break;
+        case Z_AXIS:
+            offsetRegister = CURIE_IMU_RA_OFFSET_5;
+            mostSignifBit = CURIE_IMU_GYR_OFFSET_Z_MSB_BIT;
+            break;
+    }
+    reg_write(offsetRegister, offset);
+    reg_write_bits(CURIE_IMU_RA_OFFSET_6, offset >> 8,
+                   mostSignifBit,
+                   CURIE_IMU_GYR_OFFSET_X_MSB_LEN);
+    readRotation(axis); /* Read and discard the next data value */
 }
 
 /** Get free-fall event acceleration threshold.
@@ -699,50 +580,15 @@ void BMI160Class::setZGyroOffset(int16_t offset) {
  * three axes are each less than the detection threshold. This condition
  * triggers the Free-Fall (low-g) interrupt if the condition is maintained for
  * the duration specified in the int_low_dur field of the INT_LOWHIGH[0]
- * register (@see BMI160_RA_INT_LOWHIGH_0)
+ * register (@see CURIE_IMU_RA_INT_LOWHIGH_0)
  *
  * For more details on the Free Fall detection interrupt, see Section 2.6.7 of the
  * BMI160 Data Sheet.
  *
  * @return Current free-fall acceleration threshold value (LSB = 7.81mg, 0 = 3.91mg)
- * @see BMI160_RA_INT_LOWHIGH_1
- */
-uint8_t BMI160Class::getFreefallDetectionThreshold() {
-    return reg_read(BMI160_RA_INT_LOWHIGH_1);
-}
-
-/** Set free-fall event acceleration threshold.
- * @param threshold New free-fall acceleration threshold value (LSB = 7.81mg, 0 = 3.91mg)
- * @see getFreefallDetectionThreshold()
- * @see BMI160_RA_INT_LOWHIGH_1
- */
-void BMI160Class::setFreefallDetectionThreshold(uint8_t threshold) {
-    reg_write(BMI160_RA_INT_LOWHIGH_1, threshold);
-}
-
-/** Get free-fall event duration threshold.
- * This register configures the duration threshold for Free Fall event
- * detection. The int_low_dur field of the INT_LOWHIGH[0] register has a unit
- * of 1 LSB = 2.5 ms (minimum 2.5ms).
+ * @see CURIE_IMU_RA_INT_LOWHIGH_1
  *
- * For more details on the Free Fall detection interrupt, see Section 2.6.7 of
- * the BMI160 Data Sheet.
- *
- * @return Current free-fall duration threshold value (LSB = 2.5ms, 0 = 2.5ms)
- * @see BMI160_RA_INT_LOWHIGH_0
- */
-uint8_t BMI160Class::getFreefallDetectionDuration() {
-    return reg_read(BMI160_RA_INT_LOWHIGH_0);
-}
-
-/** Set free-fall event duration threshold.
- * @param duration New free-fall duration threshold value (LSB = 2.5ms, 0 = 2.5ms)
- * @see getFreefallDetectionDuration()
- * @see BMI160_RA_INT_LOWHIGH_0
- */
-void BMI160Class::setFreefallDetectionDuration(uint8_t duration) {
-    reg_write(BMI160_RA_INT_LOWHIGH_0, duration);
-}
+*/
 
 /** Get shock event acceleration threshold.
  * This register configures the detection threshold for Shock event
@@ -762,180 +608,14 @@ void BMI160Class::setFreefallDetectionDuration(uint8_t duration) {
  * for any of the three axes exceeds the detection threshold. This condition
  * triggers the Shock (high-g) interrupt if the condition is maintained without
  * a sign-change for the duration specified in the int_high_dur field of the
- * INT_LOWHIGH[3] register (@see BMI160_RA_INT_LOWHIGH_3).
+ * INT_LOWHIGH[3] register (@see CURIE_IMU_RA_INT_LOWHIGH_3).
  *
  * For more details on the Shock (high-g) detection interrupt, see Section 2.6.8 of the
  * BMI160 Data Sheet.
  *
  * @return Current shock acceleration threshold value
- * @see BMI160_RA_INT_LOWHIGH_4
+ * @see CURIE_IMU_RA_INT_LOWHIGH_4
  */
-uint8_t BMI160Class::getShockDetectionThreshold() {
-    return reg_read(BMI160_RA_INT_LOWHIGH_4);
-}
-
-/** Set shock event acceleration threshold.
- * @param threshold New shock acceleration threshold value
- * @see getShockDetectionThreshold()
- * @see BMI160_RA_INT_LOWHIGH_4
- */
-void BMI160Class::setShockDetectionThreshold(uint8_t threshold) {
-    reg_write(BMI160_RA_INT_LOWHIGH_4, threshold);
-}
-
-/** Get shock event duration threshold.
- * This register configures the duration threshold for Shock event
- * detection. The int_high_dur field of the INT_LOWHIGH[3] register has a unit
- * of 1 LSB = 2.5 ms (minimum 2.5ms).
- *
- * For more details on the Shock detection interrupt, see Section 2.6.8 of
- * the BMI160 Data Sheet.
- *
- * @return Current shock duration threshold value (LSB = 2.5ms, 0 = 2.5ms)
- * @see BMI160_RA_INT_LOWHIGH_3
- */
-uint8_t BMI160Class::getShockDetectionDuration() {
-    return reg_read(BMI160_RA_INT_LOWHIGH_3);
-}
-
-/** Set free-fall event duration threshold.
- * @param duration New free-fall duration threshold value (LSB = 2.5ms, 0 = 2.5ms)
- * @see getFreefallDetectionDuration()
- * @see BMI160_RA_INT_LOWHIGH_3
- */
-void BMI160Class::setShockDetectionDuration(uint8_t duration) {
-    reg_write(BMI160_RA_INT_LOWHIGH_3, duration);
-}
-
-/** Get Step Detection mode.
- * Returns an enum value which corresponds to current mode
- * 0 = Normal Mode
- * 1 = Sensitive Mode
- * 2 = Robust Mode
- * 3 = Unkown Mode
- * For more details on the Step Detection, see Section
- * 2.11.37 of the BMI160 Data Sheet.
- *
- * @return Current configuration of the step detector
- * @see BMI160_RA_STEP_CONF_0
- * @see BMI160_RA_STEP_CONF_1
- */
-uint8_t BMI160Class::getStepDetectionMode() {
-    uint8_t ret_step_conf0, ret_min_step_buf;
-
-    ret_step_conf0 = reg_read(BMI160_RA_STEP_CONF_0);
-    ret_min_step_buf = reg_read(BMI160_RA_STEP_CONF_1);
-
-    if ((ret_step_conf0 == BMI160_RA_STEP_CONF_0_NOR) && (ret_min_step_buf == BMI160_RA_STEP_CONF_1_NOR))
-        return BMI160_STEP_MODE_NORMAL;
-    else if ((ret_step_conf0 == BMI160_RA_STEP_CONF_0_SEN) && (ret_min_step_buf == BMI160_RA_STEP_CONF_1_SEN))
-	return BMI160_STEP_MODE_SENSITIVE;
-    else if ((ret_step_conf0 == BMI160_RA_STEP_CONF_0_ROB) && (ret_min_step_buf == BMI160_RA_STEP_CONF_1_ROB))
-        return BMI160_STEP_MODE_ROBUST;
-    else
-        return BMI160_STEP_MODE_UNKNOWN;
-}
-
-/** Set Step Detection mode.
- * Sets the step detection mode to one of 3 predefined sensitivity settings:
- *
- *  @see BMI160_STEP_MODE_NORMAL (Recommended for most applications)
- *  @see BMI160_STEP_MODE_SENSITIVE
- *  @see BMI160_STEP_MODE_ROBUST
- *
- * Please refer to Section 2.11.37 of the BMI160 Data Sheet for more information
- * on Step Detection configuration.
- *
- * @return Set Step Detection mode
- * @see BMI160_RA_STEP_CONF_0
- * @see BMI160_RA_STEP_CONF_1
- * @see BMI160StepMode
- */
-void BMI160Class::setStepDetectionMode(BMI160StepMode mode) {
-    uint8_t step_conf0, min_step_buf;
-
-    /* Applying pre-defined values suggested in data-sheet Section 2.11.37 */
-    switch (mode) {
-    case BMI160_STEP_MODE_NORMAL:
-        step_conf0 = 0x15;
-        min_step_buf = 0x3;
-        break;
-    case BMI160_STEP_MODE_SENSITIVE:
-        step_conf0 = 0x2D;
-        min_step_buf = 0x0;
-        break;
-    case BMI160_STEP_MODE_ROBUST:
-        step_conf0 = 0x1D;
-        min_step_buf = 0x7;
-        break;
-    default:
-        /* Unrecognised mode option */
-        return;
-    };
-
-    reg_write(BMI160_RA_STEP_CONF_0, step_conf0);
-    reg_write_bits(BMI160_RA_STEP_CONF_1, min_step_buf,
-                   BMI160_STEP_BUF_MIN_BIT,
-                   BMI160_STEP_BUF_MIN_LEN);
-}
-
-
-/** Get Step Counter enabled status.
- * Once enabled and configured correctly (@see setStepDetectionMode()), the
- * BMI160 will increment a counter for every step detected by the accelerometer.
- * To retrieve the current step count, @see getStepCount().
- *
- * For more details on the Step Counting feature, see Section
- * 2.7 of the BMI160 Data Sheet.
- *
- * @return Current Step Counter enabled status
- * @see BMI160_RA_STEP_CONF_1
- * @see BMI160_STEP_CNT_EN_BIT
- */
-bool BMI160Class::getStepCountEnabled() {
-    return !!(reg_read_bits(BMI160_RA_STEP_CONF_1,
-                            BMI160_STEP_CNT_EN_BIT,
-                            1));
-}
-
-/** Set Step Counter enabled status.
- *
- * @return Set Step Counter enabled
- * @see getStepCountEnabled()
- * @see BMI160_RA_STEP_CONF_1
- * @see BMI160_STEP_CNT_EN_BIT
- */
-void BMI160Class::setStepCountEnabled(bool enabled) {
-    return reg_write_bits(BMI160_RA_STEP_CONF_1, enabled ? 0x1 : 0,
-                          BMI160_STEP_CNT_EN_BIT,
-                          1);
-}
-
-
-/** Get current number of detected step movements (Step Count).
- * Returns a step counter which is incremented when step movements are detected
- * (assuming Step Detection mode and Step Counter are configured/enabled).
- *
- * @return Number of steps as an unsigned 16-bit integer
- * @see setStepCountEnabled()
- * @see setStepDetectionMode()
- * @see BMI160_RA_STEP_CNT_L
- */
-uint16_t BMI160Class::getStepCount() {
-    uint8_t buffer[2];
-    buffer[0] = BMI160_RA_STEP_CNT_L;
-    serial_buffer_transfer(buffer, 1, 2);
-    return (((uint16_t)buffer[1]) << 8) | buffer[0];
-}
-
-/** Resets the current number of detected step movements (Step Count) to 0.
- *
- * @see getStepCount()
- * @see BMI160_RA_CMD
- */
-void BMI160Class::resetStepCount() {
-    reg_write(BMI160_RA_CMD, BMI160_CMD_STEP_CNT_CLR);
-}
 
 /** Get motion detection event acceleration threshold.
  * This register configures the detection threshold for Motion interrupt
@@ -956,64 +636,18 @@ void BMI160Class::resetStepCount() {
  * consecutive accelerometer measurements for the 3 axes exceeds this Motion
  * detection threshold. This condition triggers the Motion interrupt if the
  * condition is maintained for the sample count interval specified in the
- * int_anym_dur field of the INT_MOTION[0] register (@see BMI160_RA_INT_MOTION_0)
+ * int_anym_dur field of the INT_MOTION[0] register (@see CURIE_IMU_RA_INT_MOTION_0)
  *
  * The Motion interrupt will indicate the axis and polarity of detected motion
- * in INT_STATUS[2] (@see BMI160_RA_INT_STATUS_2).
+ * in INT_STATUS[2] (@see CURIE_IMU_RA_INT_STATUS_2).
  *
  * For more details on the Motion detection interrupt, see Section 2.6.1 of the
  * BMI160 Data Sheet.
  *
  * @return Current motion detection acceleration threshold value
  * @see getMotionDetectionDuration()
- * @see BMI160_RA_INT_MOTION_1
+ * @see CURIE_IMU_RA_INT_MOTION_1
  */
-uint8_t BMI160Class::getMotionDetectionThreshold() {
-    return reg_read(BMI160_RA_INT_MOTION_1);
-}
-
-/** Set motion detection event acceleration threshold.
- * @param threshold New motion detection acceleration threshold value
- * @see getMotionDetectionThreshold()
- * @see BMI160_RA_INT_MOTION_1
- */
-void BMI160Class::setMotionDetectionThreshold(uint8_t threshold) {
-    return reg_write(BMI160_RA_INT_MOTION_1, threshold);
-}
-
-/** Get motion detection event duration threshold.
- * This register configures the duration counter threshold for Motion interrupt
- * generation, as a number of consecutive samples (from 1-4). The time
- * between samples depends on the accelerometer Output Data Rate
- * (@see getAccelRate()).
- *
- * The Motion detection interrupt is triggered when the difference between
- * samples exceeds the Any-Motion interrupt threshold for the number of
- * consecutive samples specified here.
- *
- * For more details on the Motion detection interrupt, see Section 2.6.1 of the
- * BMI160 Data Sheet.
- *
- * @return Current motion detection duration threshold value (#samples [1-4])
- * @see getMotionDetectionThreshold()
- * @see BMI160_RA_INT_MOTION_0
- */
-uint8_t BMI160Class::getMotionDetectionDuration() {
-    return 1 + reg_read_bits(BMI160_RA_INT_MOTION_0,
-                             BMI160_ANYMOTION_DUR_BIT,
-                             BMI160_ANYMOTION_DUR_LEN);
-}
-
-/** Set motion detection event duration threshold.
- * @param duration New motion detection duration threshold value (#samples [1-4])
- * @see getMotionDetectionDuration()
- * @see BMI160_RA_INT_MOTION_0
- */
-void BMI160Class::setMotionDetectionDuration(uint8_t samples) {
-    reg_write_bits(BMI160_RA_INT_MOTION_0, samples - 1,
-                   BMI160_ANYMOTION_DUR_BIT,
-                   BMI160_ANYMOTION_DUR_LEN);
-}
 
 /** Get zero motion detection event acceleration threshold.
  * This register configures the detection threshold for Zero Motion interrupt
@@ -1035,7 +669,7 @@ void BMI160Class::setMotionDetectionDuration(uint8_t samples) {
  * this Motion detection threshold. This condition triggers the Zero Motion
  * interrupt if the condition is maintained for a time duration 
  * specified in the int_slo_no_mot_dur field of the INT_MOTION[0] register (@see
- * BMI160_RA_INT_MOTION_0), and clears the interrupt when the condition is
+ * CURIE_IMU_RA_INT_MOTION_0), and clears the interrupt when the condition is
  * then absent for the same duration.
  *
  * For more details on the Zero Motion detection interrupt, see Section 2.6.9 of
@@ -1043,20 +677,163 @@ void BMI160Class::setMotionDetectionDuration(uint8_t samples) {
  *
  * @return Current zero motion detection acceleration threshold value
  * @see getZeroMotionDetectionDuration()
- * @see BMI160_RA_INT_MOTION_2
+ * @see CURIE_IMU_RA_INT_MOTION_2
  */
-uint8_t BMI160Class::getZeroMotionDetectionThreshold() {
-    return reg_read(BMI160_RA_INT_MOTION_2);
+
+/** Get Tap event acceleration threshold.
+ * This register configures the detection threshold for Tap event
+ * detection. The threshold is expressed a 5-bit unsigned integer.
+ * The unit of threshold is dependent on the accelerometer
+ * sensitivity range (@see getFullScaleAccelRange()):
+ *
+ * <pre>
+ * Full Scale Range | LSB Resolution
+ * -----------------+----------------
+ * +/- 2g           |  62.5 mg/LSB (0 =  31.25mg)
+ * +/- 4g           | 125.0 mg/LSB (0 =  62.5mg)
+ * +/- 8g           | 250.0 mg/LSB (0 = 125.0mg)
+ * +/- 16g          | 500.0 mg/LSB (0 = 250.0mg)
+ * </pre>
+ *
+ * A Tap is detected as a shock event which exceeds the detection threshold for
+ * a specified duration.  A threshold between 0.7g and 1.5g in the 2g
+ * measurement range is suggested for typical tap detection applications.
+ *
+ * For more details on the Tap detection interrupt, see Section 2.6.4 of the
+ * BMI160 Data Sheet.
+ *
+ * @return Current shock acceleration threshold value
+ * @see CURIE_IMU_RA_INT_TAP_1
+ */
+
+int BMI160Class::getDetectionThreshold(BMI160Feature feature){
+    switch(feature){
+        case CURIE_IMU_FREEFALL:
+            return reg_read(CURIE_IMU_RA_INT_LOWHIGH_1);
+            break;
+        case CURIE_IMU_SHOCK:
+            return reg_read(CURIE_IMU_RA_INT_LOWHIGH_4);
+            break;
+        case CURIE_IMU_MOTION:
+            return reg_read(CURIE_IMU_RA_INT_MOTION_1);
+            break;
+        case CURIE_IMU_ZERO_MOTION:
+            return reg_read(CURIE_IMU_RA_INT_MOTION_2);
+            break;
+        case CURIE_IMU_TAP:
+            return reg_read_bits(CURIE_IMU_RA_INT_TAP_1,
+                         CURIE_IMU_TAP_THRESH_BIT,
+                         CURIE_IMU_TAP_THRESH_LEN);
+            break;
+        default:
+            return 0;
+            break;
+    }
 }
+
+
+/** Set free-fall event acceleration threshold.
+ * @param threshold New free-fall acceleration threshold value (LSB = 7.81mg, 0 = 3.91mg)
+ * @see getFreefallDetectionThreshold()
+ * @see CURIE_IMU_RA_INT_LOWHIGH_1
+ */
+
+/** Set shock event acceleration threshold.
+ * @param threshold New shock acceleration threshold value
+ * @see getShockDetectionThreshold()
+ * @see CURIE_IMU_RA_INT_LOWHIGH_4
+ */
+
+/** Set motion detection event acceleration threshold.
+ * @param threshold New motion detection acceleration threshold value
+ * @see getMotionDetectionThreshold()
+ * @see CURIE_IMU_RA_INT_MOTION_1
+ */
+
 
 /** Set zero motion detection event acceleration threshold.
  * @param threshold New zero motion detection acceleration threshold value
  * @see getZeroMotionDetectionThreshold()
- * @see BMI160_RA_INT_MOTION_2
+ * @see CURIE_IMU_RA_INT_MOTION_2
  */
-void BMI160Class::setZeroMotionDetectionThreshold(uint8_t threshold) {
-    reg_write(BMI160_RA_INT_MOTION_2, threshold);
+
+
+/** Set tap event acceleration threshold.
+ * @param threshold New tap acceleration threshold value
+ * @see getTapDetectionThreshold()
+ * @see CURIE_IMU_RA_INT_TAP_1
+*/
+void BMI160Class::setDetectionThreshold(BMI160Feature feature, int threshold){
+    switch(feature){
+        case CURIE_IMU_FREEFALL:
+            reg_write(CURIE_IMU_RA_INT_LOWHIGH_1, threshold);
+            break;
+        case CURIE_IMU_SHOCK:
+            reg_write(CURIE_IMU_RA_INT_LOWHIGH_4, threshold);
+            break;
+        case CURIE_IMU_MOTION:
+            return reg_write(CURIE_IMU_RA_INT_MOTION_1, threshold);
+            break;
+        case CURIE_IMU_ZERO_MOTION:
+            reg_write(CURIE_IMU_RA_INT_MOTION_2, threshold);
+            break;
+        case CURIE_IMU_TAP:
+            reg_write_bits(CURIE_IMU_RA_INT_TAP_1, threshold,
+                   CURIE_IMU_TAP_THRESH_BIT,
+                   CURIE_IMU_TAP_THRESH_LEN);
+            break;
+        default:
+            break;
+    }
 }
+
+/** Get free-fall event duration threshold.
+ * This register configures the duration threshold for Free Fall event
+ * detection. The int_low_dur field of the INT_LOWHIGH[0] register has a unit
+ * of 1 LSB = 2.5 ms (minimum 2.5ms).
+ *
+ * For more details on the Free Fall detection interrupt, see Section 2.6.7 of
+ * the BMI160 Data Sheet.
+ *
+ * @return Current free-fall duration threshold value (LSB = 2.5ms, 0 = 2.5ms)
+ * @see CURIE_IMU_RA_INT_LOWHIGH_0
+ */
+
+/** Get shock event duration threshold.
+ * This register configures the duration threshold for Shock event
+ * detection. The int_high_dur field of the INT_LOWHIGH[3] register has a unit
+ * of 1 LSB = 2.5 ms (minimum 2.5ms).
+ *
+ * For more details on the Shock detection interrupt, see Section 2.6.8 of
+ * the BMI160 Data Sheet.
+ *
+ * @return Current shock duration threshold value (LSB = 2.5ms, 0 = 2.5ms)
+ * @see CURIE_IMU_RA_INT_LOWHIGH_3
+ */
+
+/** Set free-fall event duration threshold.
+ * @param duration New free-fall duration threshold value (LSB = 2.5ms, 0 = 2.5ms)
+ * @see getFreefallDetectionDuration()
+ * @see CURIE_IMU_RA_INT_LOWHIGH_0
+ */
+
+/** Get motion detection event duration threshold.
+ * This register configures the duration counter threshold for Motion interrupt
+ * generation, as a number of consecutive samples (from 1-4). The time
+ * between samples depends on the accelerometer Output Data Rate
+ * (@see getAccelRate()).
+ *
+ * The Motion detection interrupt is triggered when the difference between
+ * samples exceeds the Any-Motion interrupt threshold for the number of
+ * consecutive samples specified here.
+ *
+ * For more details on the Motion detection interrupt, see Section 2.6.1 of the
+ * BMI160 Data Sheet.
+ *
+ * @return Current motion detection duration threshold value (#samples [1-4])
+ * @see getMotionDetectionThreshold()
+ * @see CURIE_IMU_RA_INT_MOTION_0
+ */
 
 /** Get zero motion detection event duration threshold.
  * This register configures the duration time for Zero Motion interrupt
@@ -1080,148 +857,9 @@ void BMI160Class::setZeroMotionDetectionThreshold(uint8_t threshold) {
  * @return Current zero motion detection duration threshold value
  *         @see BMI160ZeroMotionDuration for a list of possible values
  * @see getZeroMotionDetectionThreshold()
- * @see BMI160_RA_INT_MOTION_0
+ * @see CURIE_IMU_RA_INT_MOTION_0
  * @see BMI160ZeroMotionDuration
  */
-uint8_t BMI160Class::getZeroMotionDetectionDuration() {
-    return reg_read_bits(BMI160_RA_INT_MOTION_0,
-                         BMI160_NOMOTION_DUR_BIT,
-                         BMI160_NOMOTION_DUR_LEN);
-}
-
-/** Set zero motion detection event duration threshold.
- *
- * This must be called at least once to enable zero-motion detection.
- *
- * @param duration New zero motion detection duration threshold value
- *        @see BMI160ZeroMotionDuration for a list of valid values
- * @see getZeroMotionDetectionDuration()
- * @see BMI160_RA_INT_MOTION_0
- * @see BMI160ZeroMotionDuration
- */
-void BMI160Class::setZeroMotionDetectionDuration(uint8_t duration) {
-    reg_write_bits(BMI160_RA_INT_MOTION_0, duration,
-                   BMI160_NOMOTION_DUR_BIT,
-                   BMI160_NOMOTION_DUR_LEN);
-}
-
-/** Get Tap event acceleration threshold.
- * This register configures the detection threshold for Tap event
- * detection. The threshold is expressed a 5-bit unsigned integer.
- * The unit of threshold is dependent on the accelerometer
- * sensitivity range (@see getFullScaleAccelRange()):
- *
- * <pre>
- * Full Scale Range | LSB Resolution
- * -----------------+----------------
- * +/- 2g           |  62.5 mg/LSB (0 =  31.25mg)
- * +/- 4g           | 125.0 mg/LSB (0 =  62.5mg)
- * +/- 8g           | 250.0 mg/LSB (0 = 125.0mg)
- * +/- 16g          | 500.0 mg/LSB (0 = 250.0mg)
- * </pre>
- *
- * A Tap is detected as a shock event which exceeds the detection threshold for
- * a specified duration.  A threshold between 0.7g and 1.5g in the 2g
- * measurement range is suggested for typical tap detection applications.
- * 
- * For more details on the Tap detection interrupt, see Section 2.6.4 of the
- * BMI160 Data Sheet.
- *
- * @return Current shock acceleration threshold value
- * @see BMI160_RA_INT_TAP_1
- */
-uint8_t BMI160Class::getTapDetectionThreshold() {
-    return reg_read_bits(BMI160_RA_INT_TAP_1,
-                         BMI160_TAP_THRESH_BIT,
-                         BMI160_TAP_THRESH_LEN);
-}
-
-/** Set tap event acceleration threshold.
- * @param threshold New tap acceleration threshold value
- * @see getTapDetectionThreshold()
- * @see BMI160_RA_INT_TAP_1
- */
-void BMI160Class::setTapDetectionThreshold(uint8_t threshold) {
-    reg_write_bits(BMI160_RA_INT_TAP_1, threshold,
-                   BMI160_TAP_THRESH_BIT,
-                   BMI160_TAP_THRESH_LEN);
-}
-
-/** Get tap shock detection duration.
- * This register configures the duration for a tap event generation.
- *
- * The time will be returned as a 1-bit boolean, with the following
- * values (@see BMI160TapShockDuration)
- *
- * <pre>
- * duration specifier | duration threshold
- * -------------------+----------------
- *  0b0               |  50ms
- *  0b1               |  75ms
- * </pre>
- *
- * For more details on the Tap detection interrupt, see Section 2.6.4 of the
- * BMI160 Data Sheet.
- *
- * @return Current tap detection duration threshold value
- * @see BMI160_RA_INT_TAP_0
- * @see BMI160TapShockDuration
- */
-bool BMI160Class::getTapShockDuration() {
-    return !!(reg_read_bits(BMI160_RA_INT_TAP_0,
-                            BMI160_TAP_SHOCK_BIT,
-                            1));
-}
-
-/** Set tap shock detection event duration threshold.
- *
- * @param units New tap detection duration threshold value
- * @see getTapShockDetectionDuration()
- * @see BMI160_RA_INT_TAP_0
- */
-void BMI160Class::setTapShockDuration(bool duration) {
-    reg_write_bits(BMI160_RA_INT_TAP_0, duration ? 0x1 : 0,
-                   BMI160_TAP_SHOCK_BIT,
-                   1);
-}
-
-/** Get tap quiet duration threshold.
- * This register configures the quiet duration for double-tap event detection.
- *
- * The time will be returned as a 1-bit boolean, with the following
- * values (@see BMI160TapQuietDuration)
- *
- * <pre>
- * duration specifier | duration threshold
- * -------------------+----------------
- *  0b0               |  30ms
- *  0b1               |  20ms
- * </pre>
- *
- * For more details on the Tap detection interrupt, see Section 2.6.4 of the
- * BMI160 Data Sheet.
- *
- * @return Current tap quiet detection duration threshold value
- * @see BMI160_RA_INT_TAP_0
- * @see BMI160TapQuietDuration
- */
-bool BMI160Class::getTapQuietDuration() {
-    return !!(reg_read_bits(BMI160_RA_INT_TAP_0,
-                            BMI160_TAP_QUIET_BIT,
-                            1));
-}
-
-/** Set tap quiet duration threshold.
- *
- * @param units New tap detection duration threshold value
- * @see getTapQuietDuration()
- * @see BMI160_RA_INT_TAP_0
- */
-void BMI160Class::setTapQuietDuration(bool duration) {
-    reg_write_bits(BMI160_RA_INT_TAP_0, duration ? 0x1 : 0,
-                   BMI160_TAP_QUIET_BIT,
-                   1);
-}
 
 /** Get double-tap detection time window length.
  * This register configures the length of time window between 2 tap events for
@@ -1247,273 +885,567 @@ void BMI160Class::setTapQuietDuration(bool duration) {
  * BMI160 Data Sheet.
  *
  * @return Current double-tap detection time window threshold value
- * @see BMI160_RA_INT_TAP_0
+ * @see CURIE_IMU_RA_INT_TAP_0
  * @see BMI160DoubleTapDuration
  */
-uint8_t BMI160Class::getDoubleTapDetectionDuration() {
-    return reg_read_bits(BMI160_RA_INT_TAP_0,
-                         BMI160_TAP_DUR_BIT,
-                         BMI160_TAP_DUR_LEN);
+
+/** Get tap quiet duration threshold.
+ * This register configures the quiet duration for double-tap event detection.
+ *
+ * The time will be returned as a 1-bit boolean, with the following
+ * values (@see BMI160TapQuietDuration)
+ *
+ * <pre>
+ * duration specifier | duration threshold
+ * -------------------+----------------
+ *  0b0               |  30ms
+ *  0b1               |  20ms
+ * </pre>
+ *
+ * For more details on the Tap detection interrupt, see Section 2.6.4 of the
+ * BMI160 Data Sheet.
+ *
+ * @return Current tap quiet detection duration threshold value
+ * @see CURIE_IMU_RA_INT_TAP_0
+ * @see BMI160TapQuietDuration
+ */
+
+/** Get tap shock detection duration.
+ * This register configures the duration for a tap event generation.
+ *
+ * The time will be returned as a 1-bit boolean, with the following
+ * values (@see BMI160TapShockDuration)
+ *
+ * <pre>
+ * duration specifier | duration threshold
+ * -------------------+----------------
+ *  0b0               |  50ms
+ *  0b1               |  75ms
+ * </pre>
+ *
+ * For more details on the Tap detection interrupt, see Section 2.6.4 of the
+ * BMI160 Data Sheet.
+ *
+ * @return Current tap detection duration threshold value
+ * @see CURIE_IMU_RA_INT_TAP_0
+ * @see BMI160TapShockDuration
+ */
+
+int BMI160Class::getDetectionDuration(BMI160Feature feature){
+    switch(feature){
+        case CURIE_IMU_FREEFALL:
+            return reg_read(CURIE_IMU_RA_INT_LOWHIGH_0);
+            break;
+        case CURIE_IMU_SHOCK:
+            return reg_read(CURIE_IMU_RA_INT_LOWHIGH_3);
+            break;
+        case CURIE_IMU_MOTION:
+            return 1 + reg_read_bits(CURIE_IMU_RA_INT_MOTION_0,
+                             CURIE_IMU_ANYMOTION_DUR_BIT,
+                             CURIE_IMU_ANYMOTION_DUR_LEN);
+            break;
+        case CURIE_IMU_ZERO_MOTION:
+            return reg_read_bits(CURIE_IMU_RA_INT_MOTION_0,
+                         CURIE_IMU_NOMOTION_DUR_BIT,
+                         CURIE_IMU_NOMOTION_DUR_LEN);
+            break;
+        case CURIE_IMU_DOUBLE_TAP:
+            return reg_read_bits(CURIE_IMU_RA_INT_TAP_0,
+                         CURIE_IMU_TAP_DUR_BIT,
+                         CURIE_IMU_TAP_DUR_LEN);
+            break;
+        case CURIE_IMU_TAP_QUIET:
+            return !!(reg_read_bits(CURIE_IMU_RA_INT_TAP_0,
+                            CURIE_IMU_TAP_QUIET_BIT,
+                            1));
+            break;
+        case CURIE_IMU_TAP_SHOCK:
+            return !!(reg_read_bits(CURIE_IMU_RA_INT_TAP_0,
+                            CURIE_IMU_TAP_SHOCK_BIT,
+                            1));
+            break;
+        default:
+            return 0;
+            break;
+    }
 }
+
+
+/** Set free-fall event duration threshold.
+ * @param duration New free-fall duration threshold value (LSB = 2.5ms, 0 = 2.5ms)
+ * @see getFreefallDetectionDuration()
+ * @see CURIE_IMU_RA_INT_LOWHIGH_3
+ */
+
+/** Set motion detection event duration threshold.
+ * @param duration New motion detection duration threshold value (#samples [1-4])
+ * @see getMotionDetectionDuration()
+ * @see CURIE_IMU_RA_INT_MOTION_0
+ */
+
+/** Set zero motion detection event duration threshold.
+ *
+ * This must be called at least once to enable zero-motion detection.
+ *
+ * @param duration New zero motion detection duration threshold value
+ *        @see BMI160ZeroMotionDuration for a list of valid values
+ * @see getZeroMotionDetectionDuration()
+ * @see CURIE_IMU_RA_INT_MOTION_0
+ * @see BMI160ZeroMotionDuration
+ */
+
+/** Set tap shock detection event duration threshold.
+ *
+ * @param units New tap detection duration threshold value
+ * @see getTapShockDetectionDuration()
+ * @see CURIE_IMU_RA_INT_TAP_0
+ */
+
+/** Set tap quiet duration threshold.
+ *
+ * @param units New tap detection duration threshold value
+ * @see getTapQuietDuration()
+ * @see CURIE_IMU_RA_INT_TAP_0
+ */
 
 /** Set double-tap detection event duration threshold.
  *
  * @param duration New double-tap detection time window threshold value
  * @see getDoubleTapDetectionDuration()
- * @see BMI160_RA_INT_TAP_0
+ * @see CURIE_IMU_RA_INT_TAP_0
  */
-void BMI160Class::setDoubleTapDetectionDuration(uint8_t duration) {
-    reg_write_bits(BMI160_RA_INT_TAP_0, duration,
-                   BMI160_TAP_DUR_BIT,
-                   BMI160_TAP_DUR_LEN);
+
+void BMI160Class::setDetectionDuration(BMI160Feature feature, int value){
+    switch(feature){
+        case CURIE_IMU_FREEFALL:
+            reg_write(CURIE_IMU_RA_INT_LOWHIGH_0, value); //duration
+            break;
+        case CURIE_IMU_SHOCK:
+            reg_write(CURIE_IMU_RA_INT_LOWHIGH_3, value); //duration
+            break;
+        case CURIE_IMU_MOTION:
+            reg_write_bits(CURIE_IMU_RA_INT_MOTION_0, value - 1, //samples
+                   CURIE_IMU_ANYMOTION_DUR_BIT,
+                   CURIE_IMU_ANYMOTION_DUR_LEN);
+            break;
+        case CURIE_IMU_ZERO_MOTION:
+            reg_write_bits(CURIE_IMU_RA_INT_MOTION_0, value, //duration
+                   CURIE_IMU_NOMOTION_DUR_BIT,
+                   CURIE_IMU_NOMOTION_DUR_LEN);
+            break;
+        case CURIE_IMU_DOUBLE_TAP:
+            reg_write_bits(CURIE_IMU_RA_INT_TAP_0, value, //duration
+                   CURIE_IMU_TAP_DUR_BIT,
+                   CURIE_IMU_TAP_DUR_LEN);
+            break;
+        case CURIE_IMU_TAP_QUIET:
+            reg_write_bits(CURIE_IMU_RA_INT_TAP_0, value ? 0x1 : 0, //bool duration
+                   CURIE_IMU_TAP_QUIET_BIT,
+                   1);
+            break;
+        case CURIE_IMU_TAP_SHOCK:
+            reg_write_bits(CURIE_IMU_RA_INT_TAP_0, value ? 0x1 : 0, //bool duration
+                   CURIE_IMU_TAP_SHOCK_BIT,
+                   1);
+            break;
+        default:
+            break;
+    }
 }
+
+/////////////////////////////////STEP FUNCTIONS//////////////////////////////////
+
+/** Get Step Detection mode.
+ * Returns an enum value which corresponds to current mode
+ * 0 = Normal Mode
+ * 1 = Sensitive Mode
+ * 2 = Robust Mode
+ * 3 = Unkown Mode
+ * For more details on the Step Detection, see Section
+ * 2.11.37 of the BMI160 Data Sheet.
+ *
+ * @return Current configuration of the step detector
+ * @see BMI160_RA_STEP_CONF_0
+ * @see BMI160_RA_STEP_CONF_1
+ */
+BMI160StepMode BMI160Class::getStepDetectionMode() {
+    uint8_t ret_step_conf0, ret_min_step_buf;
+
+    ret_step_conf0 = reg_read(CURIE_IMU_RA_STEP_CONF_0);
+    ret_min_step_buf = reg_read(CURIE_IMU_RA_STEP_CONF_1);
+
+    if ((ret_step_conf0 == CURIE_IMU_RA_STEP_CONF_0_NOR) && (ret_min_step_buf == CURIE_IMU_RA_STEP_CONF_1_NOR))
+        return CURIE_IMU_STEP_MODE_NORMAL;
+    else if ((ret_step_conf0 == CURIE_IMU_RA_STEP_CONF_0_SEN) && (ret_min_step_buf == CURIE_IMU_RA_STEP_CONF_1_SEN))
+       return CURIE_IMU_STEP_MODE_SENSITIVE;
+    else if ((ret_step_conf0 == CURIE_IMU_RA_STEP_CONF_0_ROB) && (ret_min_step_buf == CURIE_IMU_RA_STEP_CONF_1_ROB))
+        return CURIE_IMU_STEP_MODE_ROBUST;
+    else
+        return CURIE_IMU_STEP_MODE_UNKNOWN;
+}
+
+/** Set Step Detection mode.
+ * Sets the step detection mode to one of 3 predefined sensitivity settings:
+ *
+ *  @see CURIE_IMU_STEP_MODE_NORMAL (Recommended for most applications)
+ *  @see CURIE_IMU_STEP_MODE_SENSITIVE
+ *  @see CURIE_IMU_STEP_MODE_ROBUST
+ *
+ * Please refer to Section 2.11.37 of the BMI160 Data Sheet for more information
+ * on Step Detection configuration.
+ *
+ * @return Set Step Detection mode
+ * @see CURIE_IMU_RA_STEP_CONF_0
+ * @see CURIE_IMU_RA_STEP_CONF_1
+ * @see BMI160StepMode
+ */
+
+void BMI160Class::setStepDetectionMode(BMI160StepMode mode) {
+    uint8_t step_conf0, min_step_buf;
+
+    /* Applying pre-defined values suggested in data-sheet Section 2.11.37 */
+    switch (mode) {
+    case CURIE_IMU_STEP_MODE_NORMAL:
+        step_conf0 = 0x15;
+        min_step_buf = 0x3;
+        break;
+    case CURIE_IMU_STEP_MODE_SENSITIVE:
+        step_conf0 = 0x2D;
+        min_step_buf = 0x0;
+        break;
+    case CURIE_IMU_STEP_MODE_ROBUST:
+        step_conf0 = 0x1D;
+        min_step_buf = 0x7;
+        break;
+    default:
+        /* Unrecognised mode option */
+        return;
+    };
+    reg_write(CURIE_IMU_RA_STEP_CONF_0, step_conf0);
+    reg_write_bits(CURIE_IMU_RA_STEP_CONF_1, min_step_buf,
+                   CURIE_IMU_STEP_BUF_MIN_BIT,
+                   CURIE_IMU_STEP_BUF_MIN_LEN);
+}
+
+/** Get Step Counter enabled status.
+ * Once enabled and configured correctly (@see setStepDetectionMode()), the
+ * BMI160 will increment a counter for every step detected by the accelerometer.
+ * To retrieve the current step count, @see getStepCount().
+ *
+ * For more details on the Step Counting feature, see Section
+ * 2.7 of the BMI160 Data Sheet.
+ *
+ * @return Current Step Counter enabled status
+ * @see CURIE_IMU_RA_STEP_CONF_1
+ * @see CURIE_IMU_STEP_CNT_EN_BIT
+ */
+bool BMI160Class::getStepCountEnabled() {
+    return !!(reg_read_bits(CURIE_IMU_RA_STEP_CONF_1,
+                            CURIE_IMU_STEP_CNT_EN_BIT,
+                            1));
+}
+
+/** Set Step Counter enabled status.
+ *
+ * @return Set Step Counter enabled
+ * @see getStepCountEnabled()
+ * @see CURIE_IMU_RA_STEP_CONF_1
+ * @see CURIE_IMU_STEP_CNT_EN_BIT
+ */
+void BMI160Class::setStepCountEnabled(bool enabled) {
+    return reg_write_bits(CURIE_IMU_RA_STEP_CONF_1, enabled ? 0x1 : 0,
+                          CURIE_IMU_STEP_CNT_EN_BIT,
+                          1);
+}
+
+
+/** Get current number of detected step movements (Step Count).
+ * Returns a step counter which is incremented when step movements are detected
+ * (assuming Step Detection mode and Step Counter are configured/enabled).
+ *
+ * @return Number of steps as an unsigned 16-bit integer
+ * @see setStepCountEnabled()
+ * @see setStepDetectionMode()
+ * @see CURIE_IMU_RA_STEP_CNT_L
+ */
+long BMI160Class::getStepCount() {
+    uint8_t buffer[2];
+    buffer[0] = CURIE_IMU_RA_STEP_CNT_L;
+    serial_buffer_transfer(buffer, 1, 2);
+    return (((uint16_t)buffer[1]) << 8) | buffer[0];
+}
+
+/** Resets the current number of detected step movements (Step Count) to 0.
+ *
+ * @see getStepCount()
+ * @see CURIE_IMU_RA_CMD
+ */
+void BMI160Class::resetStepCount() {
+    reg_write(CURIE_IMU_RA_CMD, CURIE_IMU_CMD_STEP_CNT_CLR);
+}
+
+/////////////////////////////////END OF STEP FUNCTIONS//////////////////////////////////
 
 /** Get Free Fall interrupt enabled status.
  * Will be set 0 for disabled, 1 for enabled.
  * @return Current interrupt enabled status
- * @see BMI160_RA_INT_EN_1
- * @see BMI160_LOW_G_EN_BIT
+ * @see CURIE_IMU_RA_INT_EN_1
+ * @see CURIE_IMU_LOW_G_EN_BIT
  **/
-bool BMI160Class::getIntFreefallEnabled() {
-    return !!(reg_read_bits(BMI160_RA_INT_EN_1,
-                            BMI160_LOW_G_EN_BIT,
-                            BMI160_LOW_G_EN_LEN));
-}
-
-/** Set Free Fall interrupt enabled status.
- * @param enabled New interrupt enabled status
- * @see getIntFreefallEnabled()
- * @see BMI160_RA_INT_EN_1
- * @see BMI160_LOW_G_EN_BIT
- **/
-void BMI160Class::setIntFreefallEnabled(bool enabled) {
-    reg_write_bits(BMI160_RA_INT_EN_1, enabled ? 0x1 : 0,
-                   BMI160_LOW_G_EN_BIT,
-                   BMI160_LOW_G_EN_LEN);
-}
 
 /** Get Shock interrupt enabled status.
  * Will be set 0 for disabled, 1 for enabled.
  * @return Current interrupt enabled status
- * @see BMI160_RA_INT_EN_1
- * @see BMI160_HIGH_G_EN_BIT
+ * @see CURIE_IMU_RA_INT_EN_1
+ * @see CURIE_IMU_HIGH_G_EN_BIT
  **/
-bool BMI160Class::getIntShockEnabled() {
-    return !!(reg_read_bits(BMI160_RA_INT_EN_1,
-                            BMI160_HIGH_G_EN_BIT,
-                            BMI160_HIGH_G_EN_LEN));
-}
-
-/** Set Shock interrupt enabled status.
- * @param enabled New interrupt enabled status
- * @see getIntShockEnabled()
- * @see BMI160_RA_INT_EN_1
- * @see BMI160_HIGH_G_EN_BIT
- **/
-void BMI160Class::setIntShockEnabled(bool enabled) {
-    reg_write_bits(BMI160_RA_INT_EN_1, enabled ? 0x7 : 0x0,
-                   BMI160_HIGH_G_EN_BIT,
-                   BMI160_HIGH_G_EN_LEN);
-}
 
 /** Get Step interrupt enabled status.
  * Will be set 0 for disabled, 1 for enabled.
  * @return Current interrupt enabled status
- * @see BMI160_RA_INT_EN_2
- * @see BMI160_STEP_EN_BIT
+ * @see CURIE_IMU_RA_INT_EN_2
+ * @see CURIE_IMU_STEP_EN_BIT
  **/
-bool BMI160Class::getIntStepEnabled() {
-    return !!(reg_read_bits(BMI160_RA_INT_EN_2,
-                            BMI160_STEP_EN_BIT,
-                            1));
-}
-
-/** Set Step interrupt enabled status.
- * @param enabled New interrupt enabled status
- * @see getIntStepEnabled()
- * @see BMI160_RA_INT_EN_2
- * @see BMI160_STEP_EN_BIT
- **/
-void BMI160Class::setIntStepEnabled(bool enabled) {
-    reg_write_bits(BMI160_RA_INT_EN_2, enabled ? 0x1 : 0x0,
-                   BMI160_STEP_EN_BIT,
-                   1);
-}
 
 /** Get Motion Detection interrupt enabled status.
  * Will be set 0 for disabled, 1 for enabled.
  * @return Current interrupt enabled status
- * @see BMI160_RA_INT_EN_0
- * @see BMI160_ANYMOTION_EN_BIT
+ * @see CURIE_IMU_RA_INT_EN_0
+ * @see CURIE_IMU_ANYMOTION_EN_BIT
  **/
-bool BMI160Class::getIntMotionEnabled() {
-    return !!(reg_read_bits(BMI160_RA_INT_EN_0,
-                            BMI160_ANYMOTION_EN_BIT,
-                            BMI160_ANYMOTION_EN_LEN));
-}
-
-/** Set Motion Detection interrupt enabled status.
- * @param enabled New interrupt enabled status
- * @see getIntMotionEnabled()
- * @see BMI160_RA_INT_EN_0
- * @see BMI160_ANYMOTION_EN_BIT
- **/
-void BMI160Class::setIntMotionEnabled(bool enabled) {
-    /* Enable for all 3 axes */
-    reg_write_bits(BMI160_RA_INT_EN_0, enabled ? 0x7 : 0x0,
-                   BMI160_ANYMOTION_EN_BIT,
-                   BMI160_ANYMOTION_EN_LEN);
-}
 
 /** Get Zero Motion Detection interrupt enabled status.
  * Will be set 0 for disabled, 1 for enabled.
  * @return Current interrupt enabled status
- * @see BMI160_RA_INT_EN_2
- * @see BMI160_NOMOTION_EN_BIT
+ * @see CURIE_IMU_RA_INT_EN_2
+ * @see CURIE_IMU_NOMOTION_EN_BIT
  **/
-bool BMI160Class::getIntZeroMotionEnabled() {
-    return !!(reg_read_bits(BMI160_RA_INT_EN_2,
-                            BMI160_NOMOTION_EN_BIT,
-                            BMI160_NOMOTION_EN_LEN));
-}
-
-/** Set Zero Motion Detection interrupt enabled status.
- * @param enabled New interrupt enabled status
- * @see getIntZeroMotionEnabled()
- * @see BMI160_RA_INT_EN_2
- * @see BMI160_NOMOTION_EN_BIT
- * @see BMI160_RA_INT_MOTION_3
- **/
-void BMI160Class::setIntZeroMotionEnabled(bool enabled) {
-    if (enabled) {
-        /* Select No-Motion detection mode */
-        reg_write_bits(BMI160_RA_INT_MOTION_3, 0x1,
-                       BMI160_NOMOTION_SEL_BIT,
-                       BMI160_NOMOTION_SEL_LEN);
-    }
-    /* Enable for all 3 axes */
-    reg_write_bits(BMI160_RA_INT_EN_2, enabled ? 0x7 : 0x0,
-                   BMI160_NOMOTION_EN_BIT,
-                   BMI160_NOMOTION_EN_LEN);
-}
 
 /** Get Tap Detection interrupt enabled status.
  * Will be set 0 for disabled, 1 for enabled.
  * @return Current interrupt enabled status
- * @see BMI160_RA_INT_EN_0
- * @see BMI160_S_TAP_EN_BIT
+ * @see CURIE_IMU_RA_INT_EN_0
+ * @see CURIE_IMU_S_TAP_EN_BIT
  **/
-bool BMI160Class::getIntTapEnabled() {
-    return !!(reg_read_bits(BMI160_RA_INT_EN_0,
-                            BMI160_S_TAP_EN_BIT,
-                            1));
-}
-
-/** Set Tap Detection interrupt enabled status.
- * @param enabled New interrupt enabled status
- * @see getIntTapEnabled()
- * @see BMI160_RA_INT_EN_0
- * @see BMI160_S_TAP_EN_BIT
- **/
-void BMI160Class::setIntTapEnabled(bool enabled) {
-    reg_write_bits(BMI160_RA_INT_EN_0, enabled ? 0x1 : 0,
-                   BMI160_S_TAP_EN_BIT,
-                   1);
-}
-
 /** Get Tap Detection interrupt enabled status.
  * Will be set 0 for disabled, 1 for enabled.
  * @return Current interrupt enabled status
- * @see BMI160_RA_INT_EN_0
- * @see BMI160_D_TAP_EN_BIT
+ * @see CURIE_IMU_RA_INT_EN_0
+ * @see CURIE_IMU_D_TAP_EN_BIT
  **/
-bool BMI160Class::getIntDoubleTapEnabled() {
-    return !!(reg_read_bits(BMI160_RA_INT_EN_0,
-                            BMI160_D_TAP_EN_BIT,
-                            1));
-}
-
-/** Set Tap Detection interrupt enabled status.
- * @param enabled New interrupt enabled status
- * @see getIntTapEnabled()
- * @see BMI160_RA_INT_EN_0
- * @see BMI160_D_TAP_EN_BIT
- **/
-void BMI160Class::setIntDoubleTapEnabled(bool enabled) {
-    reg_write_bits(BMI160_RA_INT_EN_0, enabled ? 0x1 : 0,
-                   BMI160_D_TAP_EN_BIT,
-                   1);
-}
 
 /** Get FIFO Buffer Full interrupt enabled status.
  * Will be set 0 for disabled, 1 for enabled.
  * @return Current interrupt enabled status
- * @see BMI160_RA_INT_EN_1
- * @see BMI160_FFULL_EN_BIT
+ * @see CURIE_IMU_RA_INT_EN_1
+ * @see CURIE_IMU_FFULL_EN_BIT
  **/
-bool BMI160Class::getIntFIFOBufferFullEnabled() {
-    return !!(reg_read_bits(BMI160_RA_INT_EN_1,
-                            BMI160_FFULL_EN_BIT,
-                            1));
-}
-
-/** Set FIFO Buffer Full interrupt enabled status.
- * @param enabled New interrupt enabled status
- * @see getIntFIFOBufferFullEnabled()
- * @see BMI160_RA_INT_EN_1
- * @see BMI160_FFULL_EN_BIT
- **/
-void BMI160Class::setIntFIFOBufferFullEnabled(bool enabled) {
-    reg_write_bits(BMI160_RA_INT_EN_1, enabled ? 0x1 : 0x0,
-                   BMI160_FFULL_EN_BIT,
-                   1);
-}
 
 /** Get Data Ready interrupt enabled setting.
  * This event occurs each time a write operation to all of the sensor registers
  * has been completed. Will be set 0 for disabled, 1 for enabled.
  * @return Current interrupt enabled status
- * @see BMI160_RA_INT_EN_1
- * @see BMI160_DRDY_EN_BIT
+ * @see CURIE_IMU_RA_INT_EN_1
+ * @see CURIE_IMU_DRDY_EN_BIT
  */
-bool BMI160Class::getIntDataReadyEnabled() {
-    return !!(reg_read_bits(BMI160_RA_INT_EN_1,
-                            BMI160_DRDY_EN_BIT,
+
+
+boolean BMI160Class::interruptEnabled(BMI160Feature feature){
+    switch(feature){
+        case CURIE_IMU_FREEFALL:
+            return !!(reg_read_bits(CURIE_IMU_RA_INT_EN_1,
+                            CURIE_IMU_LOW_G_EN_BIT,
+                            CURIE_IMU_LOW_G_EN_LEN));
+        case CURIE_IMU_SHOCK:
+            return !!(reg_read_bits(CURIE_IMU_RA_INT_EN_1,
+                            CURIE_IMU_HIGH_G_EN_BIT,
+                            CURIE_IMU_HIGH_G_EN_LEN));
+            break;
+        case CURIE_IMU_STEP:
+            return !!(reg_read_bits(CURIE_IMU_RA_INT_EN_2,
+                            CURIE_IMU_STEP_EN_BIT,
                             1));
+            break;
+        case CURIE_IMU_MOTION:
+            return !!(reg_read_bits(CURIE_IMU_RA_INT_EN_0,
+                            CURIE_IMU_ANYMOTION_EN_BIT,
+                            CURIE_IMU_ANYMOTION_EN_LEN));
+            break;
+        case CURIE_IMU_ZERO_MOTION:
+            return !!(reg_read_bits(CURIE_IMU_RA_INT_EN_2,
+                            CURIE_IMU_NOMOTION_EN_BIT,
+                            CURIE_IMU_NOMOTION_EN_LEN));
+            break;
+        case CURIE_IMU_DOUBLE_TAP:
+            return !!(reg_read_bits(CURIE_IMU_RA_INT_EN_0,
+                            CURIE_IMU_D_TAP_EN_BIT,
+                            1));
+            break;
+        case CURIE_IMU_TAP:
+            return !!(reg_read_bits(CURIE_IMU_RA_INT_EN_0,
+                            CURIE_IMU_S_TAP_EN_BIT,
+                            1));
+            break;
+        case CURIE_IMU_DATA_READY:
+            return !!(reg_read_bits(CURIE_IMU_RA_INT_EN_1,
+                            CURIE_IMU_DRDY_EN_BIT,
+                            1));
+            break;
+        case CURIE_IMU_FIFO_FULL:
+            return !!(reg_read_bits(CURIE_IMU_RA_INT_EN_1,
+                            CURIE_IMU_FFULL_EN_BIT,
+                            1));
+            break;
+        default:    return 0;
+            break;
+    }
 }
+
+/** Set Free Fall interrupt enabled status.
+ * @param enabled New interrupt enabled status
+ * @see getIntFreefallEnabled()
+ * @see CURIE_IMU_RA_INT_EN_1
+ * @see CURIE_IMU_LOW_G_EN_BIT
+ **/
+
+/** Set Shock interrupt enabled status.
+ * @param enabled New interrupt enabled status
+ * @see getIntShockEnabled()
+ * @see CURIE_IMU_RA_INT_EN_1
+ * @see CURIE_IMU_HIGH_G_EN_BIT
+ **/
+
+/** Set Step interrupt enabled status.
+ * @param enabled New interrupt enabled status
+ * @see getIntStepEnabled()
+ * @see CURIE_IMU_RA_INT_EN_2
+ * @see CURIE_IMU_STEP_EN_BIT
+ **/
+
+/** Set Motion Detection interrupt enabled status.
+ * @param enabled New interrupt enabled status
+ * @see getIntMotionEnabled()
+ * @see CURIE_IMU_RA_INT_EN_0
+ * @see CURIE_IMU_ANYMOTION_EN_BIT
+ **/
+
+/** Set Zero Motion Detection interrupt enabled status.
+ * @param enabled New interrupt enabled status
+ * @see getIntZeroMotionEnabled()
+ * @see CURIE_IMU_RA_INT_EN_2
+ * @see CURIE_IMU_NOMOTION_EN_BIT
+ * @see CURIE_IMU_RA_INT_MOTION_3
+ **/
+
+/** Set Tap Detection interrupt enabled status.
+ * @param enabled New interrupt enabled status
+ * @see getIntTapEnabled()
+ * @see CURIE_IMU_RA_INT_EN_0
+ * @see CURIE_IMU_S_TAP_EN_BIT
+ **/
+
+/** Set Tap Detection interrupt enabled status.
+ * @param enabled New interrupt enabled status
+ * @see getIntTapEnabled()
+ * @see CURIE_IMU_RA_INT_EN_0
+ * @see CURIE_IMU_D_TAP_EN_BIT
+ **/
+
+/** Set FIFO Buffer Full interrupt enabled status.
+ * @param enabled New interrupt enabled status
+ * @see getIntFIFOBufferFullEnabled()
+ * @see CURIE_IMU_RA_INT_EN_1
+ * @see CURIE_IMU_FFULL_EN_BIT
+ **/
 
 /** Set Data Ready interrupt enabled status.
  * @param enabled New interrupt enabled status
  * @see getIntDataReadyEnabled()
- * @see BMI160_RA_INT_EN_1
- * @see BMI160_DRDY_EN_BIT
+ * @see CURIE_IMU_RA_INT_EN_1
+ * @see CURIE_IMU_DRDY_EN_BIT
  */
-void BMI160Class::setIntDataReadyEnabled(bool enabled) {
-    reg_write_bits(BMI160_RA_INT_EN_1, enabled ? 0x1 : 0x0,
-                   BMI160_DRDY_EN_BIT,
+
+void BMI160Class::enableInterrupt(BMI160Feature feature, boolean enabled){
+    switch(feature){
+        case CURIE_IMU_FREEFALL:
+            reg_write_bits(CURIE_IMU_RA_INT_EN_1, enabled ? 0x1 : 0,
+                   CURIE_IMU_LOW_G_EN_BIT,
+                   CURIE_IMU_LOW_G_EN_LEN);
+        case CURIE_IMU_SHOCK:
+            reg_write_bits(CURIE_IMU_RA_INT_EN_1, enabled ? 0x7 : 0x0,
+                   CURIE_IMU_HIGH_G_EN_BIT,
+                   CURIE_IMU_HIGH_G_EN_LEN);
+            break;
+        case CURIE_IMU_STEP:
+            reg_write_bits(CURIE_IMU_RA_INT_EN_2, enabled ? 0x1 : 0x0,
+                   CURIE_IMU_STEP_EN_BIT,
                    1);
+            break;
+        case CURIE_IMU_MOTION:
+            /* Enable for all 3 axes */
+            reg_write_bits(CURIE_IMU_RA_INT_EN_0, enabled ? 0x7 : 0x0,
+                   CURIE_IMU_ANYMOTION_EN_BIT,
+                   CURIE_IMU_ANYMOTION_EN_LEN);
+            break;
+        case CURIE_IMU_ZERO_MOTION:
+            if (enabled) {
+                /* Select No-Motion detection mode */
+                reg_write_bits(CURIE_IMU_RA_INT_MOTION_3, 0x1,
+                       CURIE_IMU_NOMOTION_SEL_BIT,
+                       CURIE_IMU_NOMOTION_SEL_LEN);
+            }
+            /* Enable for all 3 axes */
+            reg_write_bits(CURIE_IMU_RA_INT_EN_2, enabled ? 0x7 : 0x0,
+                   CURIE_IMU_NOMOTION_EN_BIT,
+                   CURIE_IMU_NOMOTION_EN_LEN);
+            break;
+        case CURIE_IMU_DOUBLE_TAP:
+            reg_write_bits(CURIE_IMU_RA_INT_EN_0, enabled ? 0x1 : 0,
+                   CURIE_IMU_D_TAP_EN_BIT,
+                   1);
+            break;
+        case CURIE_IMU_TAP:
+            reg_write_bits(CURIE_IMU_RA_INT_EN_0, enabled ? 0x1 : 0,
+                   CURIE_IMU_S_TAP_EN_BIT,
+                   1);
+            break;
+        case CURIE_IMU_DATA_READY:
+            reg_write_bits(CURIE_IMU_RA_INT_EN_1, enabled ? 0x1 : 0x0,
+                   CURIE_IMU_DRDY_EN_BIT,
+                   1);
+            break;
+        case CURIE_IMU_FIFO_FULL:
+            reg_write_bits(CURIE_IMU_RA_INT_EN_1, enabled ? 0x1 : 0x0,
+                   CURIE_IMU_FFULL_EN_BIT,
+                   1);
+            break;
+        default:
+            break;
+    }
 }
+
+/////////////FIFO FUNCTIONS////////////////////
 
 /** Get accelerometer FIFO enabled value.
  * When set to 1, this bit enables accelerometer data samples to be
  * written into the FIFO buffer.
  * @return Current accelerometer FIFO enabled value
- * @see BMI160_RA_FIFO_CONFIG_1
+ * @see CURIE_IMU_RA_FIFO_CONFIG_1
  */
-bool BMI160Class::getAccelFIFOEnabled() {
-    return !!(reg_read_bits(BMI160_RA_FIFO_CONFIG_1,
-                            BMI160_FIFO_ACC_EN_BIT,
+boolean BMI160Class::getAccelFIFOEnabled() {
+    return !!(reg_read_bits(CURIE_IMU_RA_FIFO_CONFIG_1,
+                            CURIE_IMU_FIFO_ACC_EN_BIT,
                             1));
 }
 
 /** Set accelerometer FIFO enabled value.
  * @param enabled New accelerometer FIFO enabled value
  * @see getAccelFIFOEnabled()
- * @see BMI160_RA_FIFO_CONFIG_1
+ * @see CURIE_IMU_RA_FIFO_CONFIG_1
  */
 void BMI160Class::setAccelFIFOEnabled(bool enabled) {
-    reg_write_bits(BMI160_RA_FIFO_CONFIG_1, enabled ? 0x1 : 0,
-                   BMI160_FIFO_ACC_EN_BIT,
+    reg_write_bits(CURIE_IMU_RA_FIFO_CONFIG_1, enabled ? 0x1 : 0,
+                   CURIE_IMU_FIFO_ACC_EN_BIT,
                    1);
 }
 
@@ -1521,22 +1453,22 @@ void BMI160Class::setAccelFIFOEnabled(bool enabled) {
  * When set to 1, this bit enables gyroscope data samples to be
  * written into the FIFO buffer.
  * @return Current gyroscope FIFO enabled value
- * @see BMI160_RA_FIFO_CONFIG_1
+ * @see CURIE_IMU_RA_FIFO_CONFIG_1
  */
-bool BMI160Class::getGyroFIFOEnabled() {
-    return !!(reg_read_bits(BMI160_RA_FIFO_CONFIG_1,
-                            BMI160_FIFO_GYR_EN_BIT,
+boolean BMI160Class::getGyroFIFOEnabled() {
+    return !!(reg_read_bits(CURIE_IMU_RA_FIFO_CONFIG_1,
+                            CURIE_IMU_FIFO_GYR_EN_BIT,
                             1));
 }
 
 /** Set gyroscope FIFO enabled value.
  * @param enabled New gyroscope FIFO enabled value
  * @see getGyroFIFOEnabled()
- * @see BMI160_RA_FIFO_CONFIG_1
+ * @see CURIE_IMU_RA_FIFO_CONFIG_1
  */
 void BMI160Class::setGyroFIFOEnabled(bool enabled) {
-    reg_write_bits(BMI160_RA_FIFO_CONFIG_1, enabled ? 0x1 : 0,
-                   BMI160_FIFO_GYR_EN_BIT,
+    reg_write_bits(CURIE_IMU_RA_FIFO_CONFIG_1, enabled ? 0x1 : 0,
+                   CURIE_IMU_FIFO_GYR_EN_BIT,
                    1);
 }
 
@@ -1549,11 +1481,11 @@ void BMI160Class::setGyroFIFOEnabled(bool enabled) {
  * FIFO. See @ref getFIFOHeaderModeEnabled().
  *
  * @return Current FIFO buffer size
- * @see BMI160_RA_FIFO_LENGTH_0
+ * @see CURIE_IMU_RA_FIFO_LENGTH_0
  */
-uint16_t BMI160Class::getFIFOCount() {
+long BMI160Class::getFIFOCount() {
     uint8_t buffer[2];
-    buffer[0] = BMI160_RA_FIFO_LENGTH_0;
+    buffer[0] = CURIE_IMU_RA_FIFO_LENGTH_0;
     serial_buffer_transfer(buffer, 1, 2);
     return (((int16_t)buffer[1]) << 8) | buffer[0];
 }
@@ -1561,22 +1493,22 @@ uint16_t BMI160Class::getFIFOCount() {
 /** Reset the FIFO.
  * This command clears all data in the FIFO buffer.  It is recommended
  * to invoke this after reconfiguring the FIFO.
- * 
- * @see BMI160_RA_CMD
- * @see BMI160_CMD_FIFO_FLUSH
+ *
+ * @see CURIE_IMU_RA_CMD
+ * @see CURIE_IMU_CMD_FIFO_FLUSH
  */
 void BMI160Class::resetFIFO() {
-    reg_write(BMI160_RA_CMD, BMI160_CMD_FIFO_FLUSH);
+    reg_write(CURIE_IMU_RA_CMD, CURIE_IMU_CMD_FIFO_FLUSH);
 }
 
 /** Reset the Interrupt controller.
  * This command clears interrupt status registers and latched interrupts.
- * 
- * @see BMI160_RA_CMD
- * @see BMI160_CMD_FIFO_FLUSH
+ *
+ * @see CURIE_IMU_RA_CMD
+ * @see CURIE_IMU_CMD_FIFO_FLUSH
  */
 void BMI160Class::resetInterrupt() {
-    reg_write(BMI160_RA_CMD, BMI160_CMD_INT_RESET);
+    reg_write(CURIE_IMU_RA_CMD, CURIE_IMU_CMD_INT_RESET);
 }
 
 /** Get FIFO Header-Mode enabled status.
@@ -1589,24 +1521,24 @@ void BMI160Class::resetInterrupt() {
  * to Section 2.5 of the BMI160 Data Sheet.
  *
  * @return Current FIFO Header-Mode enabled status
- * @see BMI160_RA_FIFO_CONFIG_1
- * @see BMI160_FIFO_HEADER_EN_BIT
+ * @see CURIE_IMU_RA_FIFO_CONFIG_1
+ * @see CURIE_IMU_FIFO_HEADER_EN_BIT
  */
-bool BMI160Class::getFIFOHeaderModeEnabled() {
-    return !!(reg_read_bits(BMI160_RA_FIFO_CONFIG_1,
-                            BMI160_FIFO_HEADER_EN_BIT,
+boolean BMI160Class::getFIFOHeaderModeEnabled() {
+    return !!(reg_read_bits(CURIE_IMU_RA_FIFO_CONFIG_1,
+                            CURIE_IMU_FIFO_HEADER_EN_BIT,
                             1));
 }
 
 /** Set FIFO Header-Mode enabled status.
  * @param enabled New FIFO Header-Mode enabled status
  * @see getFIFOHeaderModeEnabled()
- * @see BMI160_RA_FIFO_CONFIG_1
- * @see BMI160_FIFO_HEADER_EN_BIT
+ * @see CURIE_IMU_RA_FIFO_CONFIG_1
+ * @see CURIE_IMU_FIFO_HEADER_EN_BIT
  */
-void BMI160Class::setFIFOHeaderModeEnabled(bool enabled) {
-    reg_write_bits(BMI160_RA_FIFO_CONFIG_1, enabled ? 0x1 : 0,
-                   BMI160_FIFO_HEADER_EN_BIT,
+void BMI160Class::setFIFOHeaderModeEnabled(boolean enabled) {
+    reg_write_bits(CURIE_IMU_RA_FIFO_CONFIG_1, enabled ? 0x1 : 0,
+                   CURIE_IMU_FIFO_HEADER_EN_BIT,
                    1);
 }
 
@@ -1628,57 +1560,41 @@ void BMI160Class::setFIFOHeaderModeEnabled(bool enabled) {
  * data will be lost and new data will be written to the FIFO.
  *
  * If the FIFO buffer is empty, reading this register will return a magic number
- * (@see BMI160_FIFO_DATA_INVALID) until new data is available. The user should
+ * (@see CURIE_IMU_FIFO_DATA_INVALID) until new data is available. The user should
  * check FIFO_LENGTH to ensure that the FIFO buffer is not read when empty (see
  * @getFIFOCount()).
  *
  * @return Data frames from FIFO buffer
  */
-void BMI160Class::getFIFOBytes(uint8_t *data, uint16_t length) {
+void BMI160Class::getFIFOBytes(uint8_t  *data, uint16_t  length) {
     if (length) {
-        data[0] = BMI160_RA_FIFO_DATA;
+        data[0] = CURIE_IMU_RA_FIFO_DATA;
         serial_buffer_transfer(data, 1, length);
     }
 }
 
-/** Get full set of interrupt status bits from INT_STATUS[0] register.
- * Interrupts are typically cleared automatically.
- * Please refer to the BMI160 Data Sheet for more information.
- * @return Current interrupt status
- * @see BMI160_RA_INT_STATUS_0
- */
-uint8_t BMI160Class::getIntStatus0() {
-    return reg_read(BMI160_RA_INT_STATUS_0);
-}
+//////////////////END OF FIFO FUNCTIONS////////////////////////
 
-/** Get full set of interrupt status bits from INT_STATUS[1] register.
+/** Get full set of interrupt status bits from INT_STATUS[] registers.
  * Interrupts are typically cleared automatically.
  * Please refer to the BMI160 Data Sheet for more information.
  * @return Current interrupt status
- * @see BMI160_RA_INT_STATUS_1
+ * @see CURIE_IMU_RA_INT_STATUS_0-4
  */
-uint8_t BMI160Class::getIntStatus1() {
-    return reg_read(BMI160_RA_INT_STATUS_1);
-}
 
-/** Get full set of interrupt status bits from INT_STATUS[2] register.
- * Interrupts are typically cleared automatically.
- * Please refer to the BMI160 Data Sheet for more information.
- * @return Current interrupt status
- * @see BMI160_RA_INT_STATUS_2
- */
-uint8_t BMI160Class::getIntStatus2() {
-    return reg_read(BMI160_RA_INT_STATUS_2);
-}
-
-/** Get full set of interrupt status bits from INT_STATUS[3] register.
- * Interrupts are typically cleared automatically.
- * Please refer to the BMI160 Data Sheet for more information.
- * @return Current interrupt status
- * @see BMI160_RA_INT_STATUS_3
- */
-uint8_t BMI160Class::getIntStatus3() {
-    return reg_read(BMI160_RA_INT_STATUS_3);
+int BMI160Class::getInterruptBits(int reg){
+    switch(reg){
+        case 0: return reg_read(CURIE_IMU_RA_INT_STATUS_0);
+            break;
+        case 1: return reg_read(CURIE_IMU_RA_INT_STATUS_1);
+            break;
+        case 2: return reg_read(CURIE_IMU_RA_INT_STATUS_2);
+            break;
+        case 3: return reg_read(CURIE_IMU_RA_INT_STATUS_3);
+            break;
+        default: return 0;
+            break;
+    }
 }
 
 /** Get Free Fall interrupt status.
@@ -1689,14 +1605,9 @@ uint8_t BMI160Class::getIntStatus3() {
  * 2.6.7 of the BMI160 Data Sheet.
  *
  * @return Current interrupt status
- * @see BMI160_RA_INT_STATUS_1
- * @see BMI160_LOW_G_INT_BIT
+ * @see CURIE_IMU_RA_INT_STATUS_1
+ * @see CURIE_IMU_LOW_G_INT_BIT
  */
-bool BMI160Class::getIntFreefallStatus() {
-    return !!(reg_read_bits(BMI160_RA_INT_STATUS_1,
-                            BMI160_LOW_G_INT_BIT,
-                            1));
-}
 
 /** Get Tap Detection interrupt status.
  * This bit automatically sets to 1 when a Tap Detection condition
@@ -1706,14 +1617,9 @@ bool BMI160Class::getIntFreefallStatus() {
  * BMI160 Data Sheet.
  *
  * @return Current interrupt status
- * @see BMI160_RA_INT_STATUS_0
- * @see BMI160_S_TAP_INT_BIT
+ * @see CURIE_IMU_RA_INT_STATUS_0
+ * @see CURIE_IMU_S_TAP_INT_BIT
  */
-bool BMI160Class::getIntTapStatus() {
-    return !!(reg_read_bits(BMI160_RA_INT_STATUS_0,
-                            BMI160_S_TAP_INT_BIT,
-                            1));
-}
 
 /** Get Double-Tap Detection interrupt status.
  * This bit automatically sets to 1 when a Double-Tap Detection condition
@@ -1723,14 +1629,9 @@ bool BMI160Class::getIntTapStatus() {
  * BMI160 Data Sheet.
  *
  * @return Current interrupt status
- * @see BMI160_RA_INT_STATUS_0
- * @see BMI160_D_TAP_INT_BIT
+ * @see CURIE_IMU_RA_INT_STATUS_0
+ * @see CURIE_IMU_D_TAP_INT_BIT
  */
-bool BMI160Class::getIntDoubleTapStatus() {
-    return !!(reg_read_bits(BMI160_RA_INT_STATUS_0,
-                            BMI160_D_TAP_INT_BIT,
-                            1));
-}
 
 /** Get Shock interrupt status.
  * This bit automatically sets to 1 when a Shock (High-G) Detection condition
@@ -1740,86 +1641,9 @@ bool BMI160Class::getIntDoubleTapStatus() {
  * 2.6.8 of the BMI160 Data Sheet.
  *
  * @return Current interrupt status
- * @see BMI160_RA_INT_STATUS_1
- * @see BMI160_HIGH_G_INT_BIT
+ * @see CURIE_IMU_RA_INT_STATUS_1
+ * @see CURIE_IMU_HIGH_G_INT_BIT
  */
-bool BMI160Class::getIntShockStatus() {
-    return !!(reg_read_bits(BMI160_RA_INT_STATUS_1,
-                            BMI160_HIGH_G_INT_BIT,
-                            1));
-}
-
-/** Check if shock interrupt was triggered by negative X-axis motion
- * @return Shock detection status
- * @see BMI160_RA_INT_STATUS_3
- * @see BMI160_HIGH_G_SIGN_BIT
- * @see BMI160_HIGH_G_1ST_X_BIT
- */
-bool BMI160Class::getXNegShockDetected() {
-    uint8_t status = reg_read(BMI160_RA_INT_STATUS_3);
-    return !!((status & (1 << BMI160_HIGH_G_SIGN_BIT)) &&
-              (status & (1 << BMI160_HIGH_G_1ST_X_BIT)));
-}
-
-/** Check if shock interrupt was triggered by positive X-axis motion
- * @return Shock detection status
- * @see BMI160_RA_INT_STATUS_3
- * @see BMI160_HIGH_G_SIGN_BIT
- * @see BMI160_HIGH_G_1ST_X_BIT
- */
-bool BMI160Class::getXPosShockDetected() {
-    uint8_t status = reg_read(BMI160_RA_INT_STATUS_3);
-    return !!(!(status & (1 << BMI160_HIGH_G_SIGN_BIT)) &&
-              (status & (1 << BMI160_HIGH_G_1ST_X_BIT)));
-}
-
-/** Check if shock interrupt was triggered by negative Y-axis motion
- * @return Shock detection status
- * @see BMI160_RA_INT_STATUS_3
- * @see BMI160_HIGH_G_SIGN_BIT
- * @see BMI160_HIGH_G_1ST_Y_BIT
- */
-bool BMI160Class::getYNegShockDetected() {
-    uint8_t status = reg_read(BMI160_RA_INT_STATUS_3);
-    return !!((status & (1 << BMI160_HIGH_G_SIGN_BIT)) &&
-              (status & (1 << BMI160_HIGH_G_1ST_Y_BIT)));
-}
-
-/** Check if shock interrupt was triggered by positive Y-axis motion
- * @return Shock detection status
- * @see BMI160_RA_INT_STATUS_3
- * @see BMI160_HIGH_G_SIGN_BIT
- * @see BMI160_HIGH_G_1ST_Y_BIT
- */
-bool BMI160Class::getYPosShockDetected() {
-    uint8_t status = reg_read(BMI160_RA_INT_STATUS_3);
-    return !!(!(status & (1 << BMI160_HIGH_G_SIGN_BIT)) &&
-              (status & (1 << BMI160_HIGH_G_1ST_Y_BIT)));
-}
-
-/** Check if shock interrupt was triggered by negative Z-axis motion
- * @return Shock detection status
- * @see BMI160_RA_INT_STATUS_3
- * @see BMI160_HIGH_G_SIGN_BIT
- * @see BMI160_HIGH_G_1ST_Z_BIT
- */
-bool BMI160Class::getZNegShockDetected() {
-    uint8_t status = reg_read(BMI160_RA_INT_STATUS_3);
-    return !!((status & (1 << BMI160_HIGH_G_SIGN_BIT)) &&
-              (status & (1 << BMI160_HIGH_G_1ST_Z_BIT)));
-}
-
-/** Check if shock interrupt was triggered by positive Z-axis motion
- * @return Shock detection status
- * @see BMI160_RA_INT_STATUS_3
- * @see BMI160_HIGH_G_SIGN_BIT
- * @see BMI160_HIGH_G_1ST_Z_BIT
- */
-bool BMI160Class::getZPosShockDetected() {
-    uint8_t status = reg_read(BMI160_RA_INT_STATUS_3);
-    return !!(!(status & (1 << BMI160_HIGH_G_SIGN_BIT)) &&
-              (status & (1 << BMI160_HIGH_G_1ST_Z_BIT)));
-}
 
 /** Get Step interrupt status.
  * This bit automatically sets to 1 when a Step Detection condition
@@ -1829,14 +1653,9 @@ bool BMI160Class::getZPosShockDetected() {
  * 2.6.3 of the BMI160 Data Sheet.
  *
  * @return Current interrupt status
- * @see BMI160_RA_INT_STATUS_0
- * @see BMI160_STEP_INT_BIT
+ * @see CURIE_IMU_RA_INT_STATUS_0
+ * @see CURIE_IMU_STEP_INT_BIT
  */
-bool BMI160Class::getIntStepStatus() {
-    return !!(reg_read_bits(BMI160_RA_INT_STATUS_0,
-                            BMI160_STEP_INT_BIT,
-                            1));
-}
 
 /** Get Motion Detection interrupt status.
  * This bit automatically sets to 1 when a Motion Detection condition
@@ -1846,158 +1665,9 @@ bool BMI160Class::getIntStepStatus() {
  * BMI160 Data Sheet.
  *
  * @return Current interrupt status
- * @see BMI160_RA_INT_STATUS_0
- * @see BMI160_ANYMOTION_INT_BIT
+ * @see CURIE_IMU_RA_INT_STATUS_0
+ * @see CURIE_IMU_ANYMOTION_INT_BIT
  */
-bool BMI160Class::getIntMotionStatus() {
-    return !!(reg_read_bits(BMI160_RA_INT_STATUS_0,
-                            BMI160_ANYMOTION_INT_BIT,
-                            1));
-}
-
-/** Check if motion interrupt was triggered by negative X-axis motion
- * @return Motion detection status
- * @see BMI160_RA_INT_STATUS_2
- * @see BMI160_ANYMOTION_SIGN_BIT
- * @see BMI160_ANYMOTION_1ST_X_BIT
- */
-bool BMI160Class::getXNegMotionDetected() {
-    uint8_t status = reg_read(BMI160_RA_INT_STATUS_2);
-    return !!((status & (1 << BMI160_ANYMOTION_SIGN_BIT)) &&
-              (status & (1 << BMI160_ANYMOTION_1ST_X_BIT)));
-}
-
-/** Check if motion interrupt was triggered by positive X-axis motion
- * @return Motion detection status
- * @see BMI160_RA_INT_STATUS_2
- * @see BMI160_ANYMOTION_SIGN_BIT
- * @see BMI160_ANYMOTION_1ST_X_BIT
- */
-bool BMI160Class::getXPosMotionDetected() {
-    uint8_t status = reg_read(BMI160_RA_INT_STATUS_2);
-    return !!(!(status & (1 << BMI160_ANYMOTION_SIGN_BIT)) &&
-              (status & (1 << BMI160_ANYMOTION_1ST_X_BIT)));
-}
-
-/** Check if motion interrupt was triggered by negative Y-axis motion
- * @return Motion detection status
- * @see BMI160_RA_INT_STATUS_2
- * @see BMI160_ANYMOTION_SIGN_BIT
- * @see BMI160_ANYMOTION_1ST_Y_BIT
- */
-bool BMI160Class::getYNegMotionDetected() {
-    uint8_t status = reg_read(BMI160_RA_INT_STATUS_2);
-    return !!((status & (1 << BMI160_ANYMOTION_SIGN_BIT)) &&
-              (status & (1 << BMI160_ANYMOTION_1ST_Y_BIT)));
-}
-
-/** Check if motion interrupt was triggered by positive Y-axis motion
- * @return Motion detection status
- * @see BMI160_RA_INT_STATUS_2
- * @see BMI160_ANYMOTION_SIGN_BIT
- * @see BMI160_ANYMOTION_1ST_Y_BIT
- */
-bool BMI160Class::getYPosMotionDetected() {
-    uint8_t status = reg_read(BMI160_RA_INT_STATUS_2);
-    return !!(!(status & (1 << BMI160_ANYMOTION_SIGN_BIT)) &&
-              (status & (1 << BMI160_ANYMOTION_1ST_Y_BIT)));
-}
-
-/** Check if motion interrupt was triggered by negative Z-axis motion
- * @return Motion detection status
- * @see BMI160_RA_INT_STATUS_2
- * @see BMI160_ANYMOTION_SIGN_BIT
- * @see BMI160_ANYMOTION_1ST_Z_BIT
- */
-bool BMI160Class::getZNegMotionDetected() {
-    uint8_t status = reg_read(BMI160_RA_INT_STATUS_2);
-    return !!((status & (1 << BMI160_ANYMOTION_SIGN_BIT)) &&
-              (status & (1 << BMI160_ANYMOTION_1ST_Z_BIT)));
-}
-
-/** Check if motion interrupt was triggered by positive Z-axis motion
- * @return Motion detection status
- * @see BMI160_RA_INT_STATUS_2
- * @see BMI160_ANYMOTION_SIGN_BIT
- * @see BMI160_ANYMOTION_1ST_Z_BIT
- */
-bool BMI160Class::getZPosMotionDetected() {
-    uint8_t status = reg_read(BMI160_RA_INT_STATUS_2);
-    return !!(!(status & (1 << BMI160_ANYMOTION_SIGN_BIT)) &&
-              (status & (1 << BMI160_ANYMOTION_1ST_Z_BIT)));
-}
-
-/** Check if tap interrupt was triggered by negative X-axis tap
- * @return Tap detection status
- * @see BMI160_RA_INT_STATUS_2
- * @see BMI160_TAP_SIGN_BIT
- * @see BMI160_TAP_1ST_X_BIT
- */
-bool BMI160Class::getXNegTapDetected() {
-    uint8_t status = reg_read(BMI160_RA_INT_STATUS_2);
-    return !!((status & (1 << BMI160_TAP_SIGN_BIT)) &&
-              (status & (1 << BMI160_TAP_1ST_X_BIT)));
-}
-
-/** Check if tap interrupt was triggered by positive X-axis tap
- * @return Tap detection status
- * @see BMI160_RA_INT_STATUS_2
- * @see BMI160_TAP_SIGN_BIT
- * @see BMI160_TAP_1ST_X_BIT
- */
-bool BMI160Class::getXPosTapDetected() {
-    uint8_t status = reg_read(BMI160_RA_INT_STATUS_2);
-    return !!(!(status & (1 << BMI160_TAP_SIGN_BIT)) &&
-              (status & (1 << BMI160_TAP_1ST_X_BIT)));
-}
-
-/** Check if tap interrupt was triggered by negative Y-axis tap
- * @return Tap detection status
- * @see BMI160_RA_INT_STATUS_2
- * @see BMI160_TAP_SIGN_BIT
- * @see BMI160_TAP_1ST_Y_BIT
- */
-bool BMI160Class::getYNegTapDetected() {
-    uint8_t status = reg_read(BMI160_RA_INT_STATUS_2);
-    return !!((status & (1 << BMI160_TAP_SIGN_BIT)) &&
-              (status & (1 << BMI160_TAP_1ST_Y_BIT)));
-}
-
-/** Check if tap interrupt was triggered by positive Y-axis tap
- * @return Tap detection status
- * @see BMI160_RA_INT_STATUS_2
- * @see BMI160_TAP_SIGN_BIT
- * @see BMI160_TAP_1ST_Y_BIT
- */
-bool BMI160Class::getYPosTapDetected() {
-    uint8_t status = reg_read(BMI160_RA_INT_STATUS_2);
-    return !!(!(status & (1 << BMI160_TAP_SIGN_BIT)) &&
-              (status & (1 << BMI160_TAP_1ST_Y_BIT)));
-}
-
-/** Check if tap interrupt was triggered by negative Z-axis tap
- * @return Tap detection status
- * @see BMI160_RA_INT_STATUS_2
- * @see BMI160_TAP_SIGN_BIT
- * @see BMI160_TAP_1ST_Z_BIT
- */
-bool BMI160Class::getZNegTapDetected() {
-    uint8_t status = reg_read(BMI160_RA_INT_STATUS_2);
-    return !!((status & (1 << BMI160_TAP_SIGN_BIT)) &&
-              (status & (1 << BMI160_TAP_1ST_Z_BIT)));
-}
-
-/** Check if tap interrupt was triggered by positive Z-axis tap
- * @return Tap detection status
- * @see BMI160_RA_INT_STATUS_2
- * @see BMI160_TAP_SIGN_BIT
- * @see BMI160_TAP_1ST_Z_BIT
- */
-bool BMI160Class::getZPosTapDetected() {
-    uint8_t status = reg_read(BMI160_RA_INT_STATUS_2);
-    return !!(!(status & (1 << BMI160_TAP_SIGN_BIT)) &&
-              (status & (1 << BMI160_TAP_1ST_Z_BIT)));
-}
 
 /** Get Zero Motion Detection interrupt status.
  * This bit automatically sets to 1 when a Zero Motion Detection condition
@@ -2007,74 +1677,196 @@ bool BMI160Class::getZPosTapDetected() {
  * BMI160 Data Sheet.
  *
  * @return Current interrupt status
- * @see BMI160_RA_INT_STATUS_1
- * @see BMI160_NOMOTION_INT_BIT
+ * @see CURIE_IMU_RA_INT_STATUS_1
+ * @see CURIE_IMU_NOMOTION_INT_BIT
  */
-bool BMI160Class::getIntZeroMotionStatus() {
-    return !!(reg_read_bits(BMI160_RA_INT_STATUS_1,
-                            BMI160_NOMOTION_INT_BIT,
-                            1));
-}
 
 /** Get FIFO Buffer Full interrupt status.
  * This bit automatically sets to 1 when a FIFO Full condition has been
  * generated. The bit clears to 0 when the FIFO is not full.
  * @return Current interrupt status
- * @see BMI160_RA_INT_STATUS_1
- * @see BMI160_FFULL_INT_BIT
+ * @see CURIE_IMU_RA_INT_STATUS_1
+ * @see CURIE_IMU_FFULL_INT_BIT
  */
-bool BMI160Class::getIntFIFOBufferFullStatus() {
-    return !!(reg_read_bits(BMI160_RA_INT_STATUS_1,
-                            BMI160_FFULL_INT_BIT,
-                            1));
-}
 
 /** Get Data Ready interrupt status.
  * This bit automatically sets to 1 when a Data Ready interrupt has been
  * generated. The bit clears to 0 after the data registers have been read.
  * @return Current interrupt status
- * @see BMI160_RA_INT_STATUS_1
- * @see BMI160_FFULL_INT_BIT
+ * @see CURIE_IMU_RA_INT_STATUS_1
+ * @see CURIE_IMU_FFULL_INT_BIT
  */
-bool BMI160Class::getIntDataReadyStatus() {
-    return !!(reg_read_bits(BMI160_RA_INT_STATUS_1,
-                            BMI160_DRDY_INT_BIT,
+
+int BMI160Class::getInterruptStatus(BMI160Feature feature){
+    switch(feature){
+        case CURIE_IMU_FREEFALL:
+            return !!(reg_read_bits(CURIE_IMU_RA_INT_STATUS_1,
+                            CURIE_IMU_LOW_G_INT_BIT,
                             1));
+            break;
+        case CURIE_IMU_SHOCK:
+            return !!(reg_read_bits(CURIE_IMU_RA_INT_STATUS_1,
+                            CURIE_IMU_HIGH_G_INT_BIT,
+                            1));
+            break;
+        case CURIE_IMU_MOTION:
+            return !!(reg_read_bits(CURIE_IMU_RA_INT_STATUS_0,
+                            CURIE_IMU_ANYMOTION_INT_BIT,
+                            1));
+            break;
+        case CURIE_IMU_ZERO_MOTION:
+            return !!(reg_read_bits(CURIE_IMU_RA_INT_STATUS_1,
+                            CURIE_IMU_NOMOTION_INT_BIT,
+                            1));
+            break;
+        case CURIE_IMU_STEP:
+            return !!(reg_read_bits(CURIE_IMU_RA_INT_STATUS_0,
+                            CURIE_IMU_STEP_INT_BIT,
+                            1));
+        case CURIE_IMU_TAP:
+            return !!(reg_read_bits(CURIE_IMU_RA_INT_STATUS_0,
+                            CURIE_IMU_S_TAP_INT_BIT,
+                            1));
+            break;
+        case CURIE_IMU_DOUBLE_TAP:
+            return !!(reg_read_bits(CURIE_IMU_RA_INT_STATUS_0,
+                            CURIE_IMU_D_TAP_INT_BIT,
+                            1));
+            break;
+        case CURIE_IMU_FIFO_FULL:
+            return !!(reg_read_bits(CURIE_IMU_RA_INT_STATUS_1,
+                            CURIE_IMU_FFULL_INT_BIT,
+                            1));
+            break;
+        case CURIE_IMU_DATA_READY:
+            return !!(reg_read_bits(CURIE_IMU_RA_INT_STATUS_1,
+                            CURIE_IMU_DRDY_INT_BIT,
+                            1));
+            break;
+        default: return 0;
+            break;
+    }
+}
+
+/** Check if shock interrupt was triggered by negative X-axis motion
+ * @return Shock detection status
+ * @see CURIE_IMU_RA_INT_STATUS_3
+ * @see CURIE_IMU_HIGH_G_SIGN_BIT
+ * @see CURIE_IMU_HIGH_G_1ST_X_BIT
+ */
+boolean BMI160Class::shockDetected(int axis, int direction){
+    int axisBit = 0;
+    switch(axis){
+        case X_AXIS: axisBit = CURIE_IMU_HIGH_G_1ST_X_BIT;
+            break;
+        case Y_AXIS: axisBit = CURIE_IMU_HIGH_G_1ST_Y_BIT;
+            break;
+        case Z_AXIS: axisBit = CURIE_IMU_HIGH_G_1ST_Z_BIT;
+            break;
+        default: break;
+    }
+    uint8_t status = reg_read(CURIE_IMU_RA_INT_STATUS_3);
+    if(direction == NEGATIVE){
+        return !!((status & (1 << CURIE_IMU_HIGH_G_SIGN_BIT)) &&
+                (status & (1 << axisBit)));
+    }
+    else {
+        return !!(!(status & (1 << CURIE_IMU_HIGH_G_SIGN_BIT)) &&
+              (status & (1 << axisBit)));
+    }
+}
+
+
+/** Check if motion interrupt was triggered by negative X-axis motion
+ * @return Motion detection status
+ * @see CURIE_IMU_RA_INT_STATUS_2
+ * @see CURIE_IMU_ANYMOTION_SIGN_BIT
+ * @see CURIE_IMU_ANYMOTION_1ST_X_BIT
+ */
+boolean BMI160Class::motionDetected(int axis, int direction){
+    int axisBit = 0;
+    switch(axis){
+        case X_AXIS: axisBit = CURIE_IMU_ANYMOTION_1ST_X_BIT;
+            break;
+        case Y_AXIS: axisBit = CURIE_IMU_ANYMOTION_1ST_Y_BIT;
+            break;
+        case Z_AXIS: axisBit = CURIE_IMU_ANYMOTION_1ST_Z_BIT;
+            break;
+        default: break;
+    }
+    uint8_t status = reg_read(CURIE_IMU_RA_INT_STATUS_2);
+    if(direction == NEGATIVE){
+        return !!((status & (1 << CURIE_IMU_ANYMOTION_SIGN_BIT)) &&
+                (status & (1 << axisBit)));
+    }
+    else {
+        return !!(!(status & (1 << CURIE_IMU_ANYMOTION_SIGN_BIT)) &&
+              (status & (1 << axisBit)));
+    }
+}
+
+
+/** Check if tap interrupt was triggered in any axis or direction
+ * @return Tap detection status
+ * @see CURIE_IMU_RA_INT_STATUS_2
+ * @see CURIE_IMU_TAP_SIGN_BIT
+ * @see CURIE_IMU_TAP_1ST_X/Y/Z_BIT
+ */
+boolean BMI160Class::tapDetected(int axis, int direction){
+    int axisBit = 0;
+    switch(axis){
+        case X_AXIS: axisBit = CURIE_IMU_TAP_1ST_X_BIT;
+            break;
+        case Y_AXIS: axisBit = CURIE_IMU_TAP_1ST_Y_BIT;
+            break;
+        case Z_AXIS: axisBit = CURIE_IMU_TAP_1ST_Z_BIT;
+            break;
+        default: break;
+    }
+    uint8_t status = reg_read(CURIE_IMU_RA_INT_STATUS_2);
+    if(direction == NEGATIVE){
+        return !!((status & (1 << CURIE_IMU_TAP_SIGN_BIT)) &&
+                (status & (1 << axisBit)));
+    }
+    else {
+        return !!(!(status & (1 << CURIE_IMU_TAP_SIGN_BIT)) &&
+              (status & (1 << axisBit)));
+    }
 }
 
 /** Get interrupt logic level mode.
  * Will be set 0 for active-high, 1 for active-low.
  * @return Current interrupt mode (0=active-high, 1=active-low)
- * @see BMI160_RA_INT_OUT_CTRL
- * @see BMI160_INT1_LVL
+ * @see CURIE_IMU_RA_INT_OUT_CTRL
+ * @see CURIE_IMU_INT1_LVL
  */
 bool BMI160Class::getInterruptMode() {
-    return !(reg_read_bits(BMI160_RA_INT_OUT_CTRL,
-                           BMI160_INT1_LVL,
+    return !(reg_read_bits(CURIE_IMU_RA_INT_OUT_CTRL,
+                           CURIE_IMU_INT1_LVL,
                            1));
 }
 
 /** Set interrupt logic level mode.
  * @param mode New interrupt mode (0=active-high, 1=active-low)
  * @see getInterruptMode()
- * @see BMI160_RA_INT_OUT_CTRL
- * @see BMI160_INT1_LVL
+ * @see CURIE_IMU_RA_INT_OUT_CTRL
+ * @see CURIE_IMU_INT1_LVL
  */
 void BMI160Class::setInterruptMode(bool mode) {
-    reg_write_bits(BMI160_RA_INT_OUT_CTRL, mode ? 0x0 : 0x1,
-                   BMI160_INT1_LVL,
+    reg_write_bits(CURIE_IMU_RA_INT_OUT_CTRL, mode ? 0x0 : 0x1,
+                   CURIE_IMU_INT1_LVL,
                    1);
 }
 
 /** Get interrupt drive mode.
  * Will be set 0 for push-pull, 1 for open-drain.
  * @return Current interrupt drive mode (0=push-pull, 1=open-drain)
- * @see BMI160_RA_INT_OUT_CTRL
- * @see BMI160_INT1_OD
+ * @see CURIE_IMU_RA_INT_OUT_CTRL
+ * @see CURIE_IMU_INT1_OD
  */
 bool BMI160Class::getInterruptDrive() {
-    return !!(reg_read_bits(BMI160_RA_INT_OUT_CTRL,
-                            BMI160_INT1_OD,
+    return !!(reg_read_bits(CURIE_IMU_RA_INT_OUT_CTRL,
+                            CURIE_IMU_INT1_OD,
                             1));
 }
 
@@ -2085,8 +1877,8 @@ bool BMI160Class::getInterruptDrive() {
  * @see MPU6050_INTCFG_INT_OPEN_BIT
  */
 void BMI160Class::setInterruptDrive(bool drive) {
-    reg_write_bits(BMI160_RA_INT_OUT_CTRL, drive ? 0x1 : 0x0,
-                   BMI160_INT1_OD,
+    reg_write_bits(CURIE_IMU_RA_INT_OUT_CTRL, drive ? 0x1 : 0x0,
+                   CURIE_IMU_INT1_OD,
                    1);
 }
 
@@ -2118,46 +1910,46 @@ void BMI160Class::setInterruptDrive(bool drive) {
  * - Orientation (including Flat) detection
  *
  * @return Current latch mode
- * @see BMI160_RA_INT_LATCH
+ * @see CURIE_IMU_RA_INT_LATCH
  * @see BMI160InterruptLatchMode
  */
-uint8_t BMI160Class::getInterruptLatch() {
-    return reg_read_bits(BMI160_RA_INT_LATCH,
-                         BMI160_LATCH_MODE_BIT,
-                         BMI160_LATCH_MODE_LEN);
+int BMI160Class::getInterruptLatch() {
+    return reg_read_bits(CURIE_IMU_RA_INT_LATCH,
+                         CURIE_IMU_LATCH_MODE_BIT,
+                         CURIE_IMU_LATCH_MODE_LEN);
 }
 
 /** Set interrupt latch mode.
  * @param latch New latch mode
  * @see getInterruptLatch()
- * @see BMI160_RA_INT_LATCH
+ * @see CURIE_IMU_RA_INT_LATCH
  * @see BMI160InterruptLatchMode
  */
 void BMI160Class::setInterruptLatch(uint8_t mode) {
-    reg_write_bits(BMI160_RA_INT_LATCH, mode,
-                   BMI160_LATCH_MODE_BIT,
-                   BMI160_LATCH_MODE_LEN);
+    reg_write_bits(CURIE_IMU_RA_INT_LATCH, mode,
+                   CURIE_IMU_LATCH_MODE_BIT,
+                   CURIE_IMU_LATCH_MODE_LEN);
 }
 
 /** Get interrupt enabled status.
  * @return Current interrupt enabled status
- * @see BMI160_RA_INT_OUT_CTRL
- * @see BMI160_INT1_OUTPUT_EN
+ * @see CURIE_IMU_RA_INT_OUT_CTRL
+ * @see CURIE_IMU_INT1_OUTPUT_EN
  **/
 bool BMI160Class::getIntEnabled() {
-    return !!(reg_read_bits(BMI160_RA_INT_OUT_CTRL,
-                            BMI160_INT1_OUTPUT_EN,
+    return !!(reg_read_bits(CURIE_IMU_RA_INT_OUT_CTRL,
+                            CURIE_IMU_INT1_OUTPUT_EN,
                             1));
 }
 
 /** Set interrupt enabled status.
  * @param enabled New interrupt enabled status
- * @see BMI160_RA_INT_OUT_CTRL
- * @see BMI160_INT1_OUTPUT_EN
+ * @see CURIE_IMU_RA_INT_OUT_CTRL
+ * @see CURIE_IMU_INT1_OUTPUT_EN
  **/
 void BMI160Class::setIntEnabled(bool enabled) {
-    reg_write_bits(BMI160_RA_INT_OUT_CTRL, enabled ? 0x1 : 0,
-                   BMI160_INT1_OUTPUT_EN,
+    reg_write_bits(CURIE_IMU_RA_INT_OUT_CTRL, enabled ? 0x1 : 0,
+                   CURIE_IMU_INT1_OUTPUT_EN,
                    1);
 }
 
@@ -2171,18 +1963,18 @@ void BMI160Class::setIntEnabled(bool enabled) {
  * @param gz 16-bit signed integer container for gyroscope Z-axis value
  * @see getAcceleration()
  * @see getRotation()
- * @see BMI160_RA_GYRO_X_L
+ * @see CURIE_IMU_RA_GYRO_X_L
  */
-void BMI160Class::getMotion6(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz) {
+void BMI160Class::readMotionSensor(int16_t& ax, int16_t& ay, int16_t& az, int16_t& gx, int16_t& gy, int16_t& gz) {
     uint8_t buffer[12];
-    buffer[0] = BMI160_RA_GYRO_X_L;
+    buffer[0] = CURIE_IMU_RA_GYRO_X_L;
     serial_buffer_transfer(buffer, 1, 12);
-    *gx = (((int16_t)buffer[1])  << 8) | buffer[0];
-    *gy = (((int16_t)buffer[3])  << 8) | buffer[2];
-    *gz = (((int16_t)buffer[5])  << 8) | buffer[4];
-    *ax = (((int16_t)buffer[7])  << 8) | buffer[6];
-    *ay = (((int16_t)buffer[9])  << 8) | buffer[8];
-    *az = (((int16_t)buffer[11]) << 8) | buffer[10];
+    gx = (((int16_t)buffer[1])  << 8) | buffer[0];
+    gy = (((int16_t)buffer[3])  << 8) | buffer[2];
+    gz = (((int16_t)buffer[5])  << 8) | buffer[4];
+    ax = (((int16_t)buffer[7])  << 8) | buffer[6];
+    ay = (((int16_t)buffer[9])  << 8) | buffer[8];
+    az = (((int16_t)buffer[11]) << 8) | buffer[10];
 }
 
 /** Get 3-axis accelerometer readings.
@@ -2219,49 +2011,35 @@ void BMI160Class::getMotion6(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx,
  * @param x 16-bit signed integer container for X-axis acceleration
  * @param y 16-bit signed integer container for Y-axis acceleration
  * @param z 16-bit signed integer container for Z-axis acceleration
- * @see BMI160_RA_ACCEL_X_L
+ * @see CURIE_IMU_RA_ACCEL_X_L
  */
-void BMI160Class::getAcceleration(int16_t* x, int16_t* y, int16_t* z) {
+void BMI160Class::readAccelerometer(int16_t& x, int16_t& y, int16_t& z) {
     uint8_t buffer[6];
-    buffer[0] = BMI160_RA_ACCEL_X_L;
+    buffer[0] = CURIE_IMU_RA_ACCEL_X_L;
     serial_buffer_transfer(buffer, 1, 6);
-    *x = (((int16_t)buffer[1]) << 8) | buffer[0];
-    *y = (((int16_t)buffer[3]) << 8) | buffer[2];
-    *z = (((int16_t)buffer[5]) << 8) | buffer[4];
+    x = (((int16_t)buffer[1]) << 8) | buffer[0];
+    y = (((int16_t)buffer[3]) << 8) | buffer[2];
+    z = (((int16_t)buffer[5]) << 8) | buffer[4];
 }
 
-/** Get X-axis accelerometer reading.
- * @return X-axis acceleration measurement in 16-bit 2's complement format
- * @see getMotion6()
- * @see BMI160_RA_ACCEL_X_L
+/** Get accelerometer reading.
+ * @return axes' acceleration measurement in 32-bit signed format
+ * @see readMotionSensor()
+ * @see CURIE_IMU_RA_ACCEL_X_L
  */
-int16_t BMI160Class::getAccelerationX() {
-    uint8_t buffer[2];
-    buffer[0] = BMI160_RA_ACCEL_X_L;
-    serial_buffer_transfer(buffer, 1, 2);
-    return (((int16_t)buffer[1]) << 8) | buffer[0];
-}
 
-/** Get Y-axis accelerometer reading.
- * @return Y-axis acceleration measurement in 16-bit 2's complement format
- * @see getMotion6()
- * @see BMI160_RA_ACCEL_Y_L
- */
-int16_t BMI160Class::getAccelerationY() {
+long BMI160Class::readAcceleration(int axis){
+    int accelAxis = 0;
+    switch(axis){
+        case X_AXIS: accelAxis = CURIE_IMU_RA_ACCEL_X_L;
+            break;
+        case Y_AXIS: accelAxis = CURIE_IMU_RA_ACCEL_Y_L;
+            break;
+        case Z_AXIS: accelAxis = CURIE_IMU_RA_ACCEL_Z_L;
+            break;
+    }
     uint8_t buffer[2];
-    buffer[0] = BMI160_RA_ACCEL_Y_L;
-    serial_buffer_transfer(buffer, 1, 2);
-    return (((int16_t)buffer[1]) << 8) | buffer[0];
-}
-
-/** Get Z-axis accelerometer reading.
- * @return Z-axis acceleration measurement in 16-bit 2's complement format
- * @see getMotion6()
- * @see BMI160_RA_ACCEL_Z_L
- */
-int16_t BMI160Class::getAccelerationZ() {
-    uint8_t buffer[2];
-    buffer[0] = BMI160_RA_ACCEL_Z_L;
+    buffer[0] = accelAxis;
     serial_buffer_transfer(buffer, 1, 2);
     return (((int16_t)buffer[1]) << 8) | buffer[0];
 }
@@ -2281,11 +2059,11 @@ int16_t BMI160Class::getAccelerationZ() {
  * 0x8000   | Invalid
  *
  * @return Temperature reading in 16-bit 2's complement format
- * @see BMI160_RA_TEMP_L
+ * @see CURIE_IMU_RA_TEMP_L
  */
-int16_t BMI160Class::getTemperature() {
+long BMI160Class::readTemperature() {
     uint8_t buffer[2];
-    buffer[0] = BMI160_RA_TEMP_L;
+    buffer[0] = CURIE_IMU_RA_TEMP_L;
     serial_buffer_transfer(buffer, 1, 2);
     return (((int16_t)buffer[1]) << 8) | buffer[0];
 }
@@ -2320,50 +2098,35 @@ int16_t BMI160Class::getTemperature() {
  * @param x 16-bit signed integer container for X-axis rotation
  * @param y 16-bit signed integer container for Y-axis rotation
  * @param z 16-bit signed integer container for Z-axis rotation
- * @see getMotion6()
- * @see BMI160_RA_GYRO_X_L
+ * @see readMotionSensor()
+ * @see CURIE_IMU_RA_GYRO_X_L
  */
-void BMI160Class::getRotation(int16_t* x, int16_t* y, int16_t* z) {
+void BMI160Class::readGyroscope(int16_t& x, int16_t& y, int16_t& z) {
     uint8_t buffer[6];
-    buffer[0] = BMI160_RA_GYRO_X_L;
+    buffer[0] = CURIE_IMU_RA_GYRO_X_L;
     serial_buffer_transfer(buffer, 1, 6);
-    *x = (((int16_t)buffer[1]) << 8) | buffer[0];
-    *y = (((int16_t)buffer[3]) << 8) | buffer[2];
-    *z = (((int16_t)buffer[5]) << 8) | buffer[4];
+    x = (((int16_t)buffer[1]) << 8) | buffer[0];
+    y = (((int16_t)buffer[3]) << 8) | buffer[2];
+    z = (((int16_t)buffer[5]) << 8) | buffer[4];
 }
 
-/** Get X-axis gyroscope reading.
- * @return X-axis rotation measurement in 16-bit 2's complement format
- * @see getMotion6()
- * @see BMI160_RA_GYRO_X_L
+/** Get axes' gyroscope reading.
+ * @return rotation measurement in 32-bit signed format
+ * @see readMotionSensor()
+ * @see CURIE_IMU_RA_GYRO_X_L
  */
-int16_t BMI160Class::getRotationX() {
+long BMI160Class::readRotation(int axis){
+    int gyroAxis = 0;
+    switch(axis){
+        case(X_AXIS):   gyroAxis = CURIE_IMU_RA_GYRO_X_L;
+            break;
+        case(Y_AXIS):   gyroAxis = CURIE_IMU_RA_GYRO_Y_L;
+            break;
+        case(Z_AXIS):   gyroAxis = CURIE_IMU_RA_GYRO_Z_L;
+            break;
+    }
     uint8_t buffer[2];
-    buffer[0] = BMI160_RA_GYRO_X_L;
-    serial_buffer_transfer(buffer, 1, 2);
-    return (((int16_t)buffer[1]) << 8) | buffer[0];
-}
-
-/** Get Y-axis gyroscope reading.
- * @return Y-axis rotation measurement in 16-bit 2's complement format
- * @see getMotion6()
- * @see BMI160_RA_GYRO_Y_L
- */
-int16_t BMI160Class::getRotationY() {
-    uint8_t buffer[2];
-    buffer[0] = BMI160_RA_GYRO_Y_L;
-    serial_buffer_transfer(buffer, 1, 2);
-    return (((int16_t)buffer[1]) << 8) | buffer[0];
-}
-
-/** Get Z-axis gyroscope reading.
- * @return Z-axis rotation measurement in 16-bit 2's complement format
- * @see getMotion6()
- * @see BMI160_RA_GYRO_Z_L
- */
-int16_t BMI160Class::getRotationZ() {
-    uint8_t buffer[2];
-    buffer[0] = BMI160_RA_GYRO_Z_L;
+    buffer[0] = gyroAxis;
     serial_buffer_transfer(buffer, 1, 2);
     return (((int16_t)buffer[1]) << 8) | buffer[0];
 }
@@ -2372,7 +2135,7 @@ int16_t BMI160Class::getRotationZ() {
  * @param reg register address
  * @return 8-bit register value
  */
-uint8_t BMI160Class::getRegister(uint8_t reg) {
+int BMI160Class::getRegister(int reg) {
     return reg_read(reg);
 }
 
@@ -2380,6 +2143,6 @@ uint8_t BMI160Class::getRegister(uint8_t reg) {
  * @param reg register address
  * @param data 8-bit register value
  */
-void BMI160Class::setRegister(uint8_t reg, uint8_t data) {
+void BMI160Class::setRegister(int reg, int data) {
     reg_write(reg, data);
 }

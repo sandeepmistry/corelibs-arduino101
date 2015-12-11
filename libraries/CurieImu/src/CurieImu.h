@@ -38,7 +38,7 @@ class CurieImuClass : public BMI160Class {
     friend void bmi160_pin1_isr(void);
 
     public:
-        void initialize(void);
+        bool begin(void);
         void attachInterrupt(void (*callback)(void));
         void detachInterrupt(void);
 

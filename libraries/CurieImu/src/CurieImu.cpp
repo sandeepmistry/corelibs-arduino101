@@ -21,7 +21,7 @@
 #include "internal/ss_spi.h"
 #include "interrupt.h"
 
-#define BMI160_GPIN_AON_PIN 4
+#define CURIE_IMU_GPIN_AON_PIN 4
 
 /******************************************************************************/
 
@@ -30,11 +30,11 @@
  * on the Curie module, before calling BMI160::initialize() to activate the
  * BMI160 accelerometer and gyroscpoe with default settings.
  */
-void CurieImuClass::initialize()
+bool CurieImuClass::begin()
 {
-    /* Configure pin-mux settings on the Intel Curie module to 
+    /* Configure pin-mux settings on the Intel Curie module to
      * enable SPI mode usage */
-    SET_PIN_MODE(35, QRK_PMUX_SEL_MODEA); // SPI1_SS_MISO 
+    SET_PIN_MODE(35, QRK_PMUX_SEL_MODEA); // SPI1_SS_MISO
     SET_PIN_MODE(36, QRK_PMUX_SEL_MODEA); // SPI1_SS_MOSI
     SET_PIN_MODE(37, QRK_PMUX_SEL_MODEA); // SPI1_SS_SCK
     SET_PIN_MODE(38, QRK_PMUX_SEL_MODEA); // SPI1_SS_CS_B[0]
@@ -46,7 +46,7 @@ void CurieImuClass::initialize()
     serial_buffer_transfer(&dummy_reg, 1, 1);
 
     /* The SPI interface is ready - now invoke the base class initialization */
-    BMI160Class::initialize();
+    return BMI160Class::begin();
 }
 
 /** Provides a serial buffer transfer implementation for the BMI160 base class
@@ -58,7 +58,7 @@ int CurieImuClass::serial_buffer_transfer(uint8_t *buf, unsigned tx_cnt, unsigne
     int flags, status;
 
     if (rx_cnt) /* For read transfers, assume 1st byte contains register address */
-        buf[0] |= (1 << BMI160_SPI_READ_BIT);
+        buf[0] |= (1 << CURIE_IMU_SPI_READ_BIT);
 
     /* Lock interrupts here to
      * - avoid concurrent access to the SPI bus
@@ -78,10 +78,10 @@ int CurieImuClass::serial_buffer_transfer(uint8_t *buf, unsigned tx_cnt, unsigne
  */
 void bmi160_pin1_isr(void)
 {
-    soc_gpio_mask_interrupt(SOC_GPIO_AON, BMI160_GPIN_AON_PIN);
+    soc_gpio_mask_interrupt(SOC_GPIO_AON, CURIE_IMU_GPIN_AON_PIN);
     if (CurieImu._user_callback)
         CurieImu._user_callback();
-    soc_gpio_unmask_interrupt(SOC_GPIO_AON, BMI160_GPIN_AON_PIN);
+    soc_gpio_unmask_interrupt(SOC_GPIO_AON, CURIE_IMU_GPIN_AON_PIN);
 }
 
 /** Stores a user callback, and enables PIN1 interrupts from the
@@ -99,11 +99,11 @@ void CurieImuClass::attachInterrupt(void (*callback)(void))
     cfg.int_polarity = ACTIVE_LOW;
     cfg.int_debounce = DEBOUNCE_ON;
     cfg.gpio_cb = bmi160_pin1_isr;
-    soc_gpio_set_config(SOC_GPIO_AON, BMI160_GPIN_AON_PIN, &cfg);
+    soc_gpio_set_config(SOC_GPIO_AON, CURIE_IMU_GPIN_AON_PIN, &cfg);
 
     setInterruptMode(1);  // Active-Low
     setInterruptDrive(0); // Push-Pull
-    setInterruptLatch(BMI160_LATCH_MODE_10_MS); // 10ms pulse
+    setInterruptLatch(CURIE_IMU_LATCH_MODE_10_MS); // 10ms pulse
     setIntEnabled(true);
 }
 
@@ -113,7 +113,7 @@ void CurieImuClass::detachInterrupt(void)
 {
     setIntEnabled(false);
 
-    soc_gpio_deconfig(SOC_GPIO_AON, BMI160_GPIN_AON_PIN);
+    soc_gpio_deconfig(SOC_GPIO_AON, CURIE_IMU_GPIN_AON_PIN);
 }
 
 /* Pre-instantiated Object for this class */
