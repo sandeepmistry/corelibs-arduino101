@@ -30,7 +30,7 @@
  * on the Curie module, before calling BMI160::initialize() to activate the
  * BMI160 accelerometer and gyroscpoe with default settings.
  */
-bool CurieImuClass::begin()
+bool CurieIMUClass::begin()
 {
     /* Configure pin-mux settings on the Intel Curie module to
      * enable SPI mode usage */
@@ -53,7 +53,7 @@ bool CurieImuClass::begin()
  *  to use for accessing device registers.  This implementation uses the SPI
  *  bus on the Intel Curie module to communicate with the BMI160.
  */
-int CurieImuClass::serial_buffer_transfer(uint8_t *buf, unsigned tx_cnt, unsigned rx_cnt)
+int CurieIMUClass::serial_buffer_transfer(uint8_t *buf, unsigned tx_cnt, unsigned rx_cnt)
 {
     int flags, status;
 
@@ -79,15 +79,15 @@ int CurieImuClass::serial_buffer_transfer(uint8_t *buf, unsigned tx_cnt, unsigne
 void bmi160_pin1_isr(void)
 {
     soc_gpio_mask_interrupt(SOC_GPIO_AON, CURIE_IMU_GPIN_AON_PIN);
-    if (CurieImu._user_callback)
-        CurieImu._user_callback();
+    if (CurieIMU._user_callback)
+        CurieIMU._user_callback();
     soc_gpio_unmask_interrupt(SOC_GPIO_AON, CURIE_IMU_GPIN_AON_PIN);
 }
 
 /** Stores a user callback, and enables PIN1 interrupts from the
  *  BMI160 module.
  */
-void CurieImuClass::attachInterrupt(void (*callback)(void))
+void CurieIMUClass::attachInterrupt(void (*callback)(void))
 {
     gpio_cfg_data_t cfg;
 
@@ -109,7 +109,7 @@ void CurieImuClass::attachInterrupt(void (*callback)(void))
 
 /** Disables PIN1 interrupts from the BMI160 module.
  */
-void CurieImuClass::detachInterrupt(void)
+void CurieIMUClass::detachInterrupt(void)
 {
     setIntEnabled(false);
 
@@ -117,4 +117,4 @@ void CurieImuClass::detachInterrupt(void)
 }
 
 /* Pre-instantiated Object for this class */
-CurieImuClass CurieImu;
+CurieIMUClass CurieIMU;
