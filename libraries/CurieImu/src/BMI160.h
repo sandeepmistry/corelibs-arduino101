@@ -580,6 +580,7 @@ class BMI160Class {
         boolean shockDetected(int axis, int direction);
         boolean motionDetected(int axis, int direction);
         boolean tapDetected(int axis, int direction);
+        boolean stepsDetected();
 
         boolean getFIFOHeaderModeEnabled();
         void setFIFOHeaderModeEnabled(bool enabled);

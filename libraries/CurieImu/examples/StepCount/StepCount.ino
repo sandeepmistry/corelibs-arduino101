@@ -84,6 +84,6 @@ static void updateStepCount() {
 }
 
 static void eventCallback(void) {
-  if (CurieIMU.getIntStepStatus())
+  if (CurieIMU.stepsDetected())
     updateStepCount();
 }

@@ -79,6 +79,7 @@ readTemperature	KEYWORD1
 shockDetected	KEYWORD1
 motionDetected	KEYWORD1
 tapDetected	KEYWORD1
+stepsDetected	KEYWORD1
 
 getFIFOHeaderModeEnabled	KEYWORD1
 setFIFOHeaderModeEnabled	KEYWORD1

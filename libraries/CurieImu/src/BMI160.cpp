@@ -1844,6 +1844,24 @@ bool BMI160Class::getInterruptMode() {
                            1));
 }
 
+/** Get Step interrupt status.
+ * This bit automatically sets to 1 when a Step Detection condition
+ * is present, and clears when the condition is no longer present.
+ *
+ * For more details on the Step detection interrupt, see Section
+ * 2.6.3 of the BMI160 Data Sheet.
+ *
+ * @return Current interrupt status
+ * @see CURIE_IMU_RA_INT_STATUS_0
+ * @see CURIE_IMU_STEP_INT_BIT
+ */
+bool BMI160Class::stepsDetected() {
+    return !!(reg_read_bits(CURIE_IMU_RA_INT_STATUS_0,
+                            CURIE_IMU_STEP_INT_BIT,
+                            1));
+}
+
+
 /** Set interrupt logic level mode.
  * @param mode New interrupt mode (0=active-high, 1=active-low)
  * @see getInterruptMode()
