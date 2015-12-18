@@ -573,9 +573,9 @@ class BMI160Class {
         void readAcceleration(short& x, short& y, short& z);
         void readRotation(short& x, short& y, short& z);
 
-        long readAccelerometer(int axis);
-        long readGyroscope(int axis);
-        long readTemperature();
+        int readAccelerometer(int axis);
+        int readGyro(int axis);
+        int readTemperature();
 
         boolean shockDetected(int axis, int direction);
         boolean motionDetected(int axis, int direction);

@@ -30,16 +30,16 @@ void setup() {
   Serial.begin(9600);
 
   /* Initialise the IMU */
-  CurieImu.initialize();
+  CurieImu.begin();
   CurieImu.attachInterrupt(eventCallback);
 
   /* Enable Shock Detection */
-  CurieImu.setShockDetectionThreshold(192); // 1.5g
-  CurieImu.setShockDetectionDuration(11);   // 30ms
-  CurieImu.setIntShockEnabled(true);
+  CurieImu.setDetectionThreshold(CURIE_IMU_SHOCK, 192); // 1.5g
+  CurieImu.setDetectionDuration(CURIE_IMU_SHOCK,11);   // 30ms
+  CurieImu.enableInterrupt(CURIE_IMU_SHOCK,true);
 
   /* Enable Interrupts Notifications */
-  CurieImu.setIntEnabled(true);
+  CurieImu.enableInts(true);
 
   Serial.println("IMU initialisation complete, waiting for events...");
 }
@@ -54,18 +54,18 @@ void loop() {
 
 static void eventCallback(void)
 {
-  if (CurieImu.getIntShockStatus()) {
-    if (CurieImu.getXNegShockDetected())
+  if (CurieImu.getInterruptStatus(CURIE_IMU_SHOCK)) {
+    if (CurieImu.shockDetected(X_AXIS,POSITIVE))
       Serial.println("Negative shock detected on X-axis");
-    if (CurieImu.getXPosShockDetected())
+    if (CurieImu.shockDetected(X_AXIS,NEGATIVE))
       Serial.println("Positive shock detected on X-axis");
-    if (CurieImu.getYNegShockDetected())
+    if (CurieImu.shockDetected(Y_AXIS,POSITIVE))
       Serial.println("Negative shock detected on Y-axis");
-    if (CurieImu.getYPosShockDetected())
+    if (CurieImu.shockDetected(Y_AXIS,NEGATIVE))
       Serial.println("Positive shock detected on Y-axis");
-    if (CurieImu.getZNegShockDetected())
+    if (CurieImu.shockDetected(Z_AXIS,POSITIVE))
       Serial.println("Negative shock detected on Z-axis");
-    if (CurieImu.getZPosShockDetected())
+    if (CurieImu.shockDetected(Z_AXIS,NEGATIVE))
       Serial.println("Positive shock detected on Z-axis");
   }
 }

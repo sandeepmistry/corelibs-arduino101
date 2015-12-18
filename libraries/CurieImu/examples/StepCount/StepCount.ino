@@ -42,9 +42,9 @@ void setup() {
   Serial.begin(9600);
   // pinMode(13, OUTPUT);
   // intialize the sensor:
-  CurieImu.initialize();
+  CurieImu.begin();
   // turn on step detection mode:
-  CurieImu.setStepDetectionMode(BMI160_STEP_MODE_NORMAL);
+  CurieImu.setStepDetectionMode(CURIE_IMU_STEP_MODE_NORMAL);
   // enable step counting:
   CurieImu.setStepCountEnabled(true);
 
@@ -52,8 +52,8 @@ void setup() {
     // attach the eventCallback function as the
     // step event handler:
     CurieImu.attachInterrupt(eventCallback);
-    CurieImu.setIntStepEnabled(true);        // turn on step detection
-    CurieImu.setIntEnabled(true);            // enable interrupts
+    CurieImu.enableInterrupt(CURIE_IMU_STEP,true);  // turn on step detection
+    CurieImu.enableInts(true);            // enable interrupts
 
     Serial.println("IMU initialisation complete, waiting for events...");
   }

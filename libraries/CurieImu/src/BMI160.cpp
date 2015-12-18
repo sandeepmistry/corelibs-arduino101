@@ -570,7 +570,7 @@ void BMI160Class::setGyroOffset(int axis, int offset){
     reg_write_bits(CURIE_IMU_RA_OFFSET_6, offset >> 8,
                    mostSignifBit,
                    CURIE_IMU_GYR_OFFSET_X_MSB_LEN);
-    readGyroscope(axis); /* Read and discard the next data value */
+    readGyro(axis); /* Read and discard the next data value */
 }
 
 /** Get free-fall event acceleration threshold.
@@ -1564,7 +1564,7 @@ void BMI160Class::setFIFOHeaderModeEnabled(boolean enabled) {
  *
  * @return Data frames from FIFO buffer
  */
-void BMI160Class::getFIFOBytes(uint8_t  *data, uint16_t  length) {
+void BMI160Class::getFIFOBytes(uint8_t *data, uint16_t length) {
     if (length) {
         data[0] = CURIE_IMU_RA_FIFO_DATA;
         serial_buffer_transfer(data, 1, length);
@@ -2015,9 +2015,9 @@ void BMI160Class::readAcceleration(short& x, short& y, short& z) {
     uint8_t buffer[6];
     buffer[0] = CURIE_IMU_RA_ACCEL_X_L;
     serial_buffer_transfer(buffer, 1, 6);
-    x = (((int16_t)buffer[1]) << 8) | buffer[0];
-    y = (((int16_t)buffer[3]) << 8) | buffer[2];
-    z = (((int16_t)buffer[5]) << 8) | buffer[4];
+    x = (((short)buffer[1]) << 8) | buffer[0];
+    y = (((short)buffer[3]) << 8) | buffer[2];
+    z = (((short)buffer[5]) << 8) | buffer[4];
 }
 
 /** Get accelerometer reading.
@@ -2026,7 +2026,7 @@ void BMI160Class::readAcceleration(short& x, short& y, short& z) {
  * @see CURIE_IMU_RA_ACCEL_X_L
  */
 
-long BMI160Class::readAccelerometer(int axis){
+int BMI160Class::readAccelerometer(int axis){
     int accelAxis = 0;
     switch(axis){
         case X_AXIS: accelAxis = CURIE_IMU_RA_ACCEL_X_L;
@@ -2039,7 +2039,7 @@ long BMI160Class::readAccelerometer(int axis){
     uint8_t buffer[2];
     buffer[0] = accelAxis;
     serial_buffer_transfer(buffer, 1, 2);
-    return (((int16_t)buffer[1]) << 8) | buffer[0];
+    return (((short)buffer[1]) << 8) | buffer[0];
 }
 
 /** Get current internal temperature as a signed 16-bit integer.
@@ -2059,11 +2059,11 @@ long BMI160Class::readAccelerometer(int axis){
  * @return Temperature reading in 16-bit 2's complement format
  * @see CURIE_IMU_RA_TEMP_L
  */
-long BMI160Class::readTemperature() {
+int BMI160Class::readTemperature() {
     uint8_t buffer[2];
     buffer[0] = CURIE_IMU_RA_TEMP_L;
     serial_buffer_transfer(buffer, 1, 2);
-    return (((int16_t)buffer[1]) << 8) | buffer[0];
+    return (((short)buffer[1]) << 8) | buffer[0];
 }
 
 /** Get 3-axis gyroscope readings.
@@ -2099,13 +2099,13 @@ long BMI160Class::readTemperature() {
  * @see readMotionSensor()
  * @see CURIE_IMU_RA_GYRO_X_L
  */
-void BMI160Class::readRotation(int16_t& x, int16_t& y, int16_t& z) {
+void BMI160Class::readRotation(short& x, short& y, short& z) {
     uint8_t buffer[6];
     buffer[0] = CURIE_IMU_RA_GYRO_X_L;
     serial_buffer_transfer(buffer, 1, 6);
-    x = (((int16_t)buffer[1]) << 8) | buffer[0];
-    y = (((int16_t)buffer[3]) << 8) | buffer[2];
-    z = (((int16_t)buffer[5]) << 8) | buffer[4];
+    x = (((short)buffer[1]) << 8) | buffer[0];
+    y = (((short)buffer[3]) << 8) | buffer[2];
+    z = (((short)buffer[5]) << 8) | buffer[4];
 }
 
 /** Get axes' gyroscope reading.
@@ -2113,7 +2113,7 @@ void BMI160Class::readRotation(int16_t& x, int16_t& y, int16_t& z) {
  * @see readMotionSensor()
  * @see CURIE_IMU_RA_GYRO_X_L
  */
-long BMI160Class::readGyroscope(int axis){
+int BMI160Class::readGyro(int axis){
     int gyroAxis = 0;
     switch(axis){
         case(X_AXIS):   gyroAxis = CURIE_IMU_RA_GYRO_X_L;
@@ -2126,7 +2126,7 @@ long BMI160Class::readGyroscope(int axis){
     uint8_t buffer[2];
     buffer[0] = gyroAxis;
     serial_buffer_transfer(buffer, 1, 2);
-    return (((int16_t)buffer[1]) << 8) | buffer[0];
+    return (((short)buffer[1]) << 8) | buffer[0];
 }
 
 /** Read a BMI160 register directly.
