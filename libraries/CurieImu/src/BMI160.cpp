@@ -2044,7 +2044,7 @@ void BMI160Class::readAcceleration(short& x, short& y, short& z) {
  * @see CURIE_IMU_RA_ACCEL_X_L
  */
 
-int BMI160Class::readAccelerometer(int axis){
+short BMI160Class::readAccelerometer(int axis){
     int accelAxis = 0;
     switch(axis){
         case X_AXIS: accelAxis = CURIE_IMU_RA_ACCEL_X_L;
@@ -2077,7 +2077,7 @@ int BMI160Class::readAccelerometer(int axis){
  * @return Temperature reading in 16-bit 2's complement format
  * @see CURIE_IMU_RA_TEMP_L
  */
-int BMI160Class::readTemperature() {
+short BMI160Class::readTemperature() {
     uint8_t buffer[2];
     buffer[0] = CURIE_IMU_RA_TEMP_L;
     serial_buffer_transfer(buffer, 1, 2);
@@ -2131,7 +2131,7 @@ void BMI160Class::readRotation(short& x, short& y, short& z) {
  * @see readMotionSensor()
  * @see CURIE_IMU_RA_GYRO_X_L
  */
-int BMI160Class::readGyro(int axis){
+short BMI160Class::readGyro(int axis){
     int gyroAxis = 0;
     switch(axis){
         case(X_AXIS):   gyroAxis = CURIE_IMU_RA_GYRO_X_L;
