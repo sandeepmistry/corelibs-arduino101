@@ -7,44 +7,43 @@
 #######################################
 
 CurieIMUClass	KEYWORD1
-CURIE_IMUClass	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-boolean begin	KEYWORD1
+begin	KEYWORD1
 
-int getGyroRate	KEYWORD1
-void setGyroRate	KEYWORD1
-int getAccelerometerRate	KEYWORD1
-void setAccelerometerRate	KEYWORD1
+getGyroRate	KEYWORD1
+setGyroRate	KEYWORD1
+getAccelerometerRate	KEYWORD1
+setAccelerometerRate	KEYWORD1
 
-int getGyroFilterMode	KEYWORD1
-void setGyroFilterMode	KEYWORD1
-int getAccelerometerFilterMode	KEYWORD1
-void setAccelerometerFilterMode	KEYWORD1
+getGyroFilterMode	KEYWORD1
+setGyroFilterMode	KEYWORD1
+getAccelerometerFilterMode	KEYWORD1
+setAccelerometerFilterMode	KEYWORD1
 
-int getGyroRange	KEYWORD1
-void setGyroRange	KEYWORD1
-int getAccelerometerRange	KEYWORD1
-void setAccelerometerRange	KEYWORD1
+getGyroRange	KEYWORD1
+setGyroRange	KEYWORD1
+getAccelerometerRange	KEYWORD1
+setAccelerometerRange	KEYWORD1
 
-boolean getGyroFIFOEnabled	KEYWORD1
-void setGyroFIFOEnabled	KEYWORD1
-boolean getAccelerometerFIFOEnabled	KEYWORD1
-void setAccelerometerFIFOEnabled	KEYWORD1
+getGyroFIFOEnabled	KEYWORD1
+setGyroFIFOEnabled	KEYWORD1
+getAccelerometerFIFOEnabled	KEYWORD1
+setAccelerometerFIFOEnabled	KEYWORD1
 
-void autoCalibrateGyroOffset	KEYWORD1
-void autoCalibrateAccelerometerOffset	KEYWORD1
+autoCalibrateGyroOffset	KEYWORD1
+autoCalibrateAccelerometerOffset	KEYWORD1
 
-void enableGyroOffset	KEYWORD1
-void enableAccelerometerOffset	KEYWORD1
-boolean gyroOffsetEnabled	KEYWORD1
-boolean accelerometerOffsetEnabled	KEYWORD1
+enableGyroOffset	KEYWORD1
+enableAccelerometerOffset	KEYWORD1
+gyroOffsetEnabled	KEYWORD1
+accelerometerOffsetEnabled	KEYWORD1
 
-int getGyroOffset	KEYWORD1
-int getAccelerometerOffset	KEYWORD1
+getGyroOffset	KEYWORD1
+getAccelerometerOffset	KEYWORD1
 
 setGyroOffset	KEYWORD1
 setAccelerometerOffset	KEYWORD1
@@ -106,7 +105,6 @@ resetInterrupt	KEYWORD1
 #######################################
 
 CurieIMU	KEYWORD2
-CURIE_IMU	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
