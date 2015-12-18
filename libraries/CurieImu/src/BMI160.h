@@ -266,14 +266,6 @@ THE SOFTWARE.
 #define CURIE_IMU_RA_CMD               0x7E
 
 /**
- * Sensor types for functions
- */
-typedef enum{
-    CURIE_IMU_ACCELEROMETER = 6,
-    CURIE_IMU_GYROSCOPE,
-} BMI160OffsetEnable;
-
-/**
  * Features for getThreshold(), getDuration() functions,
  */
 typedef enum {
@@ -290,13 +282,29 @@ typedef enum {
     CURIE_IMU_DATA_READY,
 } BMI160Feature;
 
-
+/**
+ * axis options
+ *@see autoCalibrateAccelerometerOffset()
+ *@see get/setGyroOffset()
+ *@see get/setAccelerometerOffset()
+ *@see readAcceleration()
+ *@see readRotation()
+ *@see shockDetected()
+ *@see tapDetected()
+ *@see motionDetected()
+ */
 typedef enum{
     X_AXIS = 0,
     Y_AXIS,
     Z_AXIS,
 }BMI160Axis;
 
+/**
+ *direction options
+ *@see shockDetected()
+ *@see tapDetected()
+ *@see motionDetected()
+ */
 typedef enum{
     POSITIVE,
     NEGATIVE,
@@ -327,29 +335,29 @@ typedef enum {
 
 /**
  * Digital Low-Pass Filter Mode options
- * @see setGyroDLPFMode()
- * @see setAccelDLPFMode()
+ * @see setGyroFilterMode()
+ * @see setAccelerometerFilterMode()
  */
 typedef enum {
     CURIE_IMU_DLPF_MODE_NORM = 0x2,
     CURIE_IMU_DLPF_MODE_OSR2 = 0x1,
     CURIE_IMU_DLPF_MODE_OSR4 = 0x0,
-} BMI160DLPFMode;
+} BMI160FilterMode;
 
 /**
  * Accelerometer Sensitivity Range options
- * @see setFullScaleAccelRange()
+ * @see setAccelerometerRange()
  */
 typedef enum {
     CURIE_IMU_ACCEL_RANGE_2G  = 0X03, /**<  +/-  2g range */
     CURIE_IMU_ACCEL_RANGE_4G  = 0X05, /**<  +/-  4g range */
     CURIE_IMU_ACCEL_RANGE_8G  = 0X08, /**<  +/-  8g range */
     CURIE_IMU_ACCEL_RANGE_16G = 0X0C, /**<  +/- 16g range */
-} BMI160AccelRange;
+} BMI160AccelerometerRange;
 
 /**
  * Gyroscope Sensitivity Range options
- * @see setFullScaleGyroRange()
+ * @see setGyroRange()
  */
 typedef enum {
     CURIE_IMU_GYRO_RANGE_2000 = 0, /**<  +/- 2000 degrees/second */
@@ -372,7 +380,7 @@ typedef enum {
     CURIE_IMU_ACCEL_RATE_400HZ,       /**<  400    Hz */
     CURIE_IMU_ACCEL_RATE_800HZ,       /**<  800    Hz */
     CURIE_IMU_ACCEL_RATE_1600HZ,      /**< 1600    Hz */
-} BMI160AccelRate;
+} BMI160AccelerometerRate;
 
 /**
  * Gyroscope Output Data Rate options
@@ -510,37 +518,37 @@ class BMI160Class {
 
         int getGyroRate();
         void setGyroRate(int rate);
-        int getAccelRate();
-        void setAccelRate(int rate);
+        int getAccelerometerRate();
+        void setAccelerometerRate(int rate);
 
         int getGyroFilterMode();
         void setGyroFilterMode(int bandwidth);
-        int getAccelFilterMode();
-        void setAccelFilterMode(int bandwidth);
+        int getAccelerometerFilterMode();
+        void setAccelerometerFilterMode(int bandwidth);
 
         int getGyroRange();
         void setGyroRange(int range);
-        int getAccelRange();
-        void setAccelRange(int range);
+        int getAccelerometerRange();
+        void setAccelerometerRange(int range);
 
         boolean getGyroFIFOEnabled();
         void setGyroFIFOEnabled(boolean enabled);
-        boolean getAccelFIFOEnabled();
-        void setAccelFIFOEnabled(boolean enabled);
+        boolean getAccelerometerFIFOEnabled();
+        void setAccelerometerFIFOEnabled(boolean enabled);
 
         void autoCalibrateGyroOffset();
-        void autoCalibrateAccelOffset(int axis, int target);
+        void autoCalibrateAccelerometerOffset(int axis, int target);
 
         void enableGyroOffset(boolean state);
-        void enableAccelOffset(boolean state);
+        void enableAccelerometerOffset(boolean state);
         boolean gyroOffsetEnabled();
-        boolean accelOffsetEnabled();
+        boolean accelerometerOffsetEnabled();
 
         int getGyroOffset(int axis);
-        int getAccelOffset(int axis);
+        int getAccelerometerOffset(int axis);
 
         void setGyroOffset(int axis, int offset);
-        void setAccelOffset(int axis, int offset);
+        void setAccelerometerOffset(int axis, int offset);
 
         int getDetectionThreshold(BMI160Feature feature);
         void setDetectionThreshold(BMI160Feature feature, int threshold);
@@ -561,12 +569,12 @@ class BMI160Class {
         void setStepCountEnabled(bool enabled);
         void resetStepCount();
 
-        void readMotionSensor(int16_t& ax, int16_t& ay, int16_t& az, int16_t& gx, int16_t& gy, int16_t& gz);
-        void readAccelerometer(int16_t& x, int16_t& y, int16_t& z);
-        void readGyroscope(int16_t& x, int16_t& y, int16_t& z);
+        void readMotionSensor(short& ax, short& ay, short& az, short& gx, short& gy, short& gz);
+        void readAcceleration(short& x, short& y, short& z);
+        void readRotation(short& x, short& y, short& z);
 
-        long readAcceleration(int axis);
-        long readRotation(int axis);
+        long readAccelerometer(int axis);
+        long readGyroscope(int axis);
         long readTemperature();
 
         boolean shockDetected(int axis, int direction);

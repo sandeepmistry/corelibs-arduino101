@@ -71,8 +71,8 @@ void BMI160Class::reg_write_bits(uint8_t reg, uint8_t data, unsigned pos, unsign
 
 uint8_t BMI160Class::reg_read_bits(uint8_t reg, unsigned pos, unsigned len)
 {
-    uint8_t b = reg_read(reg);
-    uint8_t mask = (1 << len) - 1;
+    uint16_t b = reg_read(reg);
+    uint16_t mask = (1 << len) - 1;
     b >>= pos;
     b &= mask;
     return b;
@@ -114,7 +114,7 @@ boolean BMI160Class::begin()
         delay(1);
 
     setGyroRange(CURIE_IMU_GYRO_RANGE_250);
-    setAccelRange(CURIE_IMU_ACCEL_RANGE_2G);
+    setAccelerometerRange(CURIE_IMU_ACCEL_RANGE_2G);
 
     /* Only PIN1 interrupts currently supported - map all interrupts to PIN1 */
     reg_write(CURIE_IMU_RA_INT_MAP_0, 0xFF);
@@ -194,7 +194,7 @@ void BMI160Class::setGyroRate(int rate) {
  * @see CURIE_IMU_RA_ACCEL_CONF
  * @see BMI160AccelRate
  */
-int BMI160Class::getAccelRate() {
+int BMI160Class::getAccelerometerRate() {
     return reg_read_bits(CURIE_IMU_RA_ACCEL_CONF,
                          CURIE_IMU_ACCEL_RATE_SEL_BIT,
                          CURIE_IMU_ACCEL_RATE_SEL_LEN);
@@ -205,7 +205,7 @@ int BMI160Class::getAccelRate() {
  * @see getAccelRate()
  * @see CURIE_IMU_RA_ACCEL_CONF
  */
-void BMI160Class::setAccelRate(int rate) {
+void BMI160Class::setAccelerometerRate(int rate) {
     reg_write_bits(CURIE_IMU_RA_ACCEL_CONF, rate,
                    CURIE_IMU_ACCEL_RATE_SEL_BIT,
                    CURIE_IMU_ACCEL_RATE_SEL_LEN);
@@ -285,7 +285,7 @@ void BMI160Class::setGyroFilterMode(int bandwidth) {
  * @see CURIE_IMU_RA_GYRO_CONF
  * @see BMI160DLPFMode
  */
-int BMI160Class::getAccelFilterMode() {
+int BMI160Class::getAccelerometerFilterMode() {
     return reg_read_bits(CURIE_IMU_RA_ACCEL_CONF,
                          CURIE_IMU_ACCEL_DLPF_SEL_BIT,
                          CURIE_IMU_ACCEL_DLPF_SEL_LEN);
@@ -295,7 +295,7 @@ int BMI160Class::getAccelFilterMode() {
  * @param mode New DLFP configuration setting
  * @see getAccelDLPFMode()
  */
-void BMI160Class::setAccelFilterMode(int bandwidth) {
+void BMI160Class::setAccelerometerFilterMode(int bandwidth) {
     return reg_write_bits(CURIE_IMU_RA_ACCEL_CONF, bandwidth,
                           CURIE_IMU_ACCEL_DLPF_SEL_BIT,
                           CURIE_IMU_ACCEL_DLPF_SEL_LEN);
@@ -348,7 +348,7 @@ void BMI160Class::setGyroRange(int range) {
  * @see CURIE_IMU_RA_ACCEL_RANGE
  * @see BMI160AccelRange
  */
-int BMI160Class::getAccelRange() {
+int BMI160Class::getAccelerometerRange() {
     return reg_read_bits(CURIE_IMU_RA_ACCEL_RANGE,
                          CURIE_IMU_ACCEL_RANGE_SEL_BIT,
                          CURIE_IMU_ACCEL_RANGE_SEL_LEN);
@@ -359,7 +359,7 @@ int BMI160Class::getAccelRange() {
  * @see getFullScaleAccelRange()
  * @see BMI160AccelRange
  */
-void BMI160Class::setAccelRange(int range) {
+void BMI160Class::setAccelerometerRange(int range) {
     reg_write_bits(CURIE_IMU_RA_ACCEL_RANGE, range,
                    CURIE_IMU_ACCEL_RANGE_SEL_BIT,
                    CURIE_IMU_ACCEL_RANGE_SEL_LEN);
@@ -382,7 +382,7 @@ void BMI160Class::setAccelRange(int range) {
  * @see CURIE_IMU_RA_FOC_CONF
  * @see CURIE_IMU_RA_CMD
  */
-void BMI160Class::autoCalibrateAccelOffset(int axis, int target){
+void BMI160Class::autoCalibrateAccelerometerOffset(int axis, int target){
     int axisBit = 0;
     switch(axis){
         case X_AXIS:
@@ -421,7 +421,7 @@ void BMI160Class::autoCalibrateAccelOffset(int axis, int target){
  * units of 3.9mg per LSB.
  * @see CURIE_IMU_RA_OFFSET_0
  */
-int BMI160Class::getAccelOffset(int axis){
+int BMI160Class::getAccelerometerOffset(int axis){
     switch(axis){
         case X_AXIS: return reg_read(CURIE_IMU_RA_OFFSET_0);
             break;
@@ -440,7 +440,7 @@ int BMI160Class::getAccelOffset(int axis){
  * @see getAccelOffset()
  * @see CURIE_IMU_RA_OFFSET_0-1-2.
  */
-void BMI160Class::setAccelOffset(int axis, int offset){
+void BMI160Class::setAccelerometerOffset(int axis, int offset){
     switch(axis){
         case X_AXIS: reg_write(CURIE_IMU_RA_OFFSET_0, offset);
             break;
@@ -451,7 +451,7 @@ void BMI160Class::setAccelOffset(int axis, int offset){
         default:
             break;
     }
-    readAcceleration(axis);
+    readAccelerometer(axis);
 }
 
 /** Set accel/gyro offset compensation enabled value.
@@ -459,7 +459,7 @@ void BMI160Class::setAccelOffset(int axis, int offset){
  * @see CURIE_IMU_RA_OFFSET_6
  */
 
-void BMI160Class::enableAccelOffset(boolean enabled){
+void BMI160Class::enableAccelerometerOffset(boolean enabled){
     reg_write_bits(CURIE_IMU_RA_OFFSET_6, enabled ? 0x01 : 0,
                   CURIE_IMU_ACC_OFFSET_EN,
                   1) ;
@@ -476,7 +476,7 @@ void BMI160Class::enableGyroOffset(boolean enabled){
  * @see getXGyroOffset()
  * @see CURIE_IMU_RA_OFFSET_6
  */
-boolean BMI160Class::accelOffsetEnabled(){
+boolean BMI160Class::accelerometerOffsetEnabled(){
     return !!(reg_read_bits(CURIE_IMU_RA_OFFSET_6,
                             CURIE_IMU_ACC_OFFSET_EN,
                             1));
@@ -535,8 +535,8 @@ int BMI160Class::getGyroOffset(int axis){
             break;
         default:    break;
     }
-    int16_t offset = reg_read(offsetRegister);
-    offset |= (int16_t)(reg_read_bits(CURIE_IMU_RA_OFFSET_6,
+    int offset = reg_read(offsetRegister);
+    offset |= (int)(reg_read_bits(CURIE_IMU_RA_OFFSET_6,
                                       mostSignifBit,
                                       CURIE_IMU_GYR_OFFSET_MSB_LEN)) << 8;
     return CURIE_IMU_SIGN_EXTEND(offset, 10);
@@ -570,7 +570,7 @@ void BMI160Class::setGyroOffset(int axis, int offset){
     reg_write_bits(CURIE_IMU_RA_OFFSET_6, offset >> 8,
                    mostSignifBit,
                    CURIE_IMU_GYR_OFFSET_X_MSB_LEN);
-    readRotation(axis); /* Read and discard the next data value */
+    readGyroscope(axis); /* Read and discard the next data value */
 }
 
 /** Get free-fall event acceleration threshold.
@@ -667,7 +667,7 @@ void BMI160Class::setGyroOffset(int axis, int offset){
  * Zero Motion is detected when the difference between the value of
  * consecutive accelerometer measurements for each axis remains smaller than
  * this Motion detection threshold. This condition triggers the Zero Motion
- * interrupt if the condition is maintained for a time duration 
+ * interrupt if the condition is maintained for a time duration
  * specified in the int_slo_no_mot_dur field of the INT_MOTION[0] register (@see
  * CURIE_IMU_RA_INT_MOTION_0), and clears the interrupt when the condition is
  * then absent for the same duration.
@@ -676,7 +676,7 @@ void BMI160Class::setGyroOffset(int axis, int offset){
  * the BMI160 Data Sheet.
  *
  * @return Current zero motion detection acceleration threshold value
- * @see getZeroMotionDetectionDuration()
+ * @see getDetectionDuration()
  * @see CURIE_IMU_RA_INT_MOTION_2
  */
 
@@ -705,7 +705,6 @@ void BMI160Class::setGyroOffset(int axis, int offset){
  * @return Current shock acceleration threshold value
  * @see CURIE_IMU_RA_INT_TAP_1
  */
-
 int BMI160Class::getDetectionThreshold(BMI160Feature feature){
     switch(feature){
         case CURIE_IMU_FREEFALL:
@@ -734,7 +733,7 @@ int BMI160Class::getDetectionThreshold(BMI160Feature feature){
 
 /** Set free-fall event acceleration threshold.
  * @param threshold New free-fall acceleration threshold value (LSB = 7.81mg, 0 = 3.91mg)
- * @see getFreefallDetectionThreshold()
+ * @see getDetectionThreshold()
  * @see CURIE_IMU_RA_INT_LOWHIGH_1
  */
 
@@ -1364,7 +1363,6 @@ boolean BMI160Class::interruptEnabled(BMI160Feature feature){
  * @see CURIE_IMU_RA_INT_EN_1
  * @see CURIE_IMU_DRDY_EN_BIT
  */
-
 void BMI160Class::enableInterrupt(BMI160Feature feature, boolean enabled){
     switch(feature){
         case CURIE_IMU_FREEFALL:
@@ -1432,7 +1430,7 @@ void BMI160Class::enableInterrupt(BMI160Feature feature, boolean enabled){
  * @return Current accelerometer FIFO enabled value
  * @see CURIE_IMU_RA_FIFO_CONFIG_1
  */
-boolean BMI160Class::getAccelFIFOEnabled() {
+boolean BMI160Class::getAccelerometerFIFOEnabled() {
     return !!(reg_read_bits(CURIE_IMU_RA_FIFO_CONFIG_1,
                             CURIE_IMU_FIFO_ACC_EN_BIT,
                             1));
@@ -1443,7 +1441,7 @@ boolean BMI160Class::getAccelFIFOEnabled() {
  * @see getAccelFIFOEnabled()
  * @see CURIE_IMU_RA_FIFO_CONFIG_1
  */
-void BMI160Class::setAccelFIFOEnabled(bool enabled) {
+void BMI160Class::setAccelerometerFIFOEnabled(bool enabled) {
     reg_write_bits(CURIE_IMU_RA_FIFO_CONFIG_1, enabled ? 0x1 : 0,
                    CURIE_IMU_FIFO_ACC_EN_BIT,
                    1);
@@ -1965,16 +1963,16 @@ void BMI160Class::setIntEnabled(bool enabled) {
  * @see getRotation()
  * @see CURIE_IMU_RA_GYRO_X_L
  */
-void BMI160Class::readMotionSensor(int16_t& ax, int16_t& ay, int16_t& az, int16_t& gx, int16_t& gy, int16_t& gz) {
+void BMI160Class::readMotionSensor(short& ax, short& ay, short& az, short& gx, short& gy, short& gz) {
     uint8_t buffer[12];
     buffer[0] = CURIE_IMU_RA_GYRO_X_L;
     serial_buffer_transfer(buffer, 1, 12);
-    gx = (((int16_t)buffer[1])  << 8) | buffer[0];
-    gy = (((int16_t)buffer[3])  << 8) | buffer[2];
-    gz = (((int16_t)buffer[5])  << 8) | buffer[4];
-    ax = (((int16_t)buffer[7])  << 8) | buffer[6];
-    ay = (((int16_t)buffer[9])  << 8) | buffer[8];
-    az = (((int16_t)buffer[11]) << 8) | buffer[10];
+    gx = (((short)buffer[1])  << 8) | buffer[0];
+    gy = (((short)buffer[3])  << 8) | buffer[2];
+    gz = (((short)buffer[5])  << 8) | buffer[4];
+    ax = (((short)buffer[7])  << 8) | buffer[6];
+    ay = (((short)buffer[9])  << 8) | buffer[8];
+    az = (((short)buffer[11]) << 8) | buffer[10];
 }
 
 /** Get 3-axis accelerometer readings.
@@ -2013,7 +2011,7 @@ void BMI160Class::readMotionSensor(int16_t& ax, int16_t& ay, int16_t& az, int16_
  * @param z 16-bit signed integer container for Z-axis acceleration
  * @see CURIE_IMU_RA_ACCEL_X_L
  */
-void BMI160Class::readAccelerometer(int16_t& x, int16_t& y, int16_t& z) {
+void BMI160Class::readAcceleration(short& x, short& y, short& z) {
     uint8_t buffer[6];
     buffer[0] = CURIE_IMU_RA_ACCEL_X_L;
     serial_buffer_transfer(buffer, 1, 6);
@@ -2028,7 +2026,7 @@ void BMI160Class::readAccelerometer(int16_t& x, int16_t& y, int16_t& z) {
  * @see CURIE_IMU_RA_ACCEL_X_L
  */
 
-long BMI160Class::readAcceleration(int axis){
+long BMI160Class::readAccelerometer(int axis){
     int accelAxis = 0;
     switch(axis){
         case X_AXIS: accelAxis = CURIE_IMU_RA_ACCEL_X_L;
@@ -2101,7 +2099,7 @@ long BMI160Class::readTemperature() {
  * @see readMotionSensor()
  * @see CURIE_IMU_RA_GYRO_X_L
  */
-void BMI160Class::readGyroscope(int16_t& x, int16_t& y, int16_t& z) {
+void BMI160Class::readRotation(int16_t& x, int16_t& y, int16_t& z) {
     uint8_t buffer[6];
     buffer[0] = CURIE_IMU_RA_GYRO_X_L;
     serial_buffer_transfer(buffer, 1, 6);
@@ -2115,7 +2113,7 @@ void BMI160Class::readGyroscope(int16_t& x, int16_t& y, int16_t& z) {
  * @see readMotionSensor()
  * @see CURIE_IMU_RA_GYRO_X_L
  */
-long BMI160Class::readRotation(int axis){
+long BMI160Class::readGyroscope(int axis){
     int gyroAxis = 0;
     switch(axis){
         case(X_AXIS):   gyroAxis = CURIE_IMU_RA_GYRO_X_L;
