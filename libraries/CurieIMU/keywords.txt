@@ -45,7 +45,8 @@ getDetectionDuration	KEYWORD1
 setDetectionDuration	KEYWORD1
 
 enableInterrupt	KEYWORD1
-interruptEnabled	KEYWORD1
+noInterrupts	KEYWORD1
+interruptsEnabled	KEYWORD1
 
 getInterruptBits	KEYWORD1
 getInterruptStatus	KEYWORD1

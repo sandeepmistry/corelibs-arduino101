@@ -173,8 +173,9 @@ class CurieIMUClass : public BMI160Class {
         float getDetectionDuration(int feature);
         void setDetectionDuration(int feature, float value); //value duration
 
-        void enableInterrupt(int feature, bool enabled);
-        bool interruptEnabled(int feature);
+        void interrupts(int feature);
+        void noInterrupts(int feature);
+        bool interruptsEnabled(int feature);
 
         int getInterruptStatus(int feature);
 
@@ -225,6 +226,8 @@ class CurieIMUClass : public BMI160Class {
         void setTapQuietDuration(int duration);
         int getDoubleTapDetectionDuration();
         void setDoubleTapDetectionDuration(int duration);
+
+        void enableInterrupt(int feature, bool enabled);
 
         void (*_user_callback)(void);
 };

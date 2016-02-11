@@ -1381,6 +1381,16 @@ void CurieIMUClass::setDoubleTapDetectionDuration(int duration)
     BMI160Class::setDoubleTapDetectionDuration(bmiDuration);
 }
 
+void CurieIMUClass::interrupts(int feature)
+{
+    enableInterrupt(feature, true);
+}
+
+void CurieIMUClass::noInterrupts(int feature)
+{
+    enableInterrupt(feature, false);
+}
+
 void CurieIMUClass::enableInterrupt(int feature, bool enabled)
 {
     switch (feature) {
@@ -1427,7 +1437,7 @@ void CurieIMUClass::enableInterrupt(int feature, bool enabled)
     }
 }
 
-bool CurieIMUClass::interruptEnabled(int feature)
+bool CurieIMUClass::interruptsEnabled(int feature)
 {
     switch (feature) {
         case CURIE_IMU_FREEFALL:
