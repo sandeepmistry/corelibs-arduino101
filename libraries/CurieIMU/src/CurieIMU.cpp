@@ -59,42 +59,228 @@ bool CurieIMUClass::begin()
 
 int CurieIMUClass::getGyroRate()
 {
-    return BMI160Class::getGyroRate();
+    int rate;
+
+    switch(BMI160Class::getGyroRate()) {
+        case BMI160_GYRO_RATE_25HZ:
+            rate = 25;
+            break;
+
+        case BMI160_GYRO_RATE_50HZ:
+            rate = 50;
+            break;
+
+        case BMI160_GYRO_RATE_100HZ:
+            rate = 100;
+            break;
+
+        case BMI160_GYRO_RATE_200HZ:
+            rate = 200;
+            break;
+
+        case BMI160_GYRO_RATE_400HZ:
+            rate = 400;
+            break;
+
+        case BMI160_GYRO_RATE_800HZ:
+            rate = 800;
+            break;
+
+        case BMI160_GYRO_RATE_1600HZ:
+            rate = 1600;
+            break;
+
+        case BMI160_GYRO_RATE_3200HZ:
+        default:
+            rate = 3200;
+            break;
+    }
+
+    return rate;
 }
 
 void CurieIMUClass::setGyroRate(int rate)
 {
-    BMI160Class::setGyroRate(rate);
+    BMI160GyroRate bmiRate;
+
+    if (rate <= 25) {
+        bmiRate = BMI160_GYRO_RATE_25HZ;
+    } else if (rate <= 50) {
+        bmiRate = BMI160_GYRO_RATE_50HZ;
+    } else if (rate <= 100) {
+        bmiRate = BMI160_GYRO_RATE_100HZ;
+    } else if (rate <= 200) {
+        bmiRate = BMI160_GYRO_RATE_200HZ;
+    } else if (rate <= 400) {
+        bmiRate = BMI160_GYRO_RATE_400HZ;
+    } else if (rate <= 800) {
+        bmiRate = BMI160_GYRO_RATE_800HZ;
+    } else if (rate <= 1600) {
+        bmiRate = BMI160_GYRO_RATE_1600HZ;
+    } else {
+        bmiRate = BMI160_GYRO_RATE_3200HZ;
+    }
+
+    BMI160Class::setGyroRate(bmiRate);
 }
 
-int CurieIMUClass::getAccelerometerRate()
+float CurieIMUClass::getAccelerometerRate()
 {
-    return getAccelRate();
+    float rate;
+
+    switch(BMI160Class::getAccelRate()) {
+        case BMI160_ACCEL_RATE_25_2HZ:
+            rate = 12.5;
+            break;
+
+        case BMI160_ACCEL_RATE_25HZ:
+            rate = 25;
+            break;
+
+        case BMI160_ACCEL_RATE_50HZ:
+            rate = 50;
+            break;
+
+        case BMI160_ACCEL_RATE_100HZ:
+            rate = 100;
+            break;
+
+        case BMI160_ACCEL_RATE_200HZ:
+            rate = 200;
+            break;
+
+        case BMI160_ACCEL_RATE_400HZ:
+            rate = 400;
+            break;
+
+        case BMI160_ACCEL_RATE_800HZ:
+            rate = 800;
+            break;
+
+        case BMI160_ACCEL_RATE_1600HZ:
+        default:
+            rate = 1600;
+            break;
+    }
+
+    return rate;
 }
 
-void CurieIMUClass::setAccelerometerRate(int rate)
+void CurieIMUClass::setAccelerometerRate(float rate)
 {
-    setAccelRate(rate);
+    BMI160AccelRate bmiRate;
+
+    if (rate <= 12.5) {
+        bmiRate = BMI160_ACCEL_RATE_25_2HZ;
+    } else if (rate <= 25) {
+        bmiRate = BMI160_ACCEL_RATE_25HZ;
+    } else if (rate <= 50) {
+        bmiRate = BMI160_ACCEL_RATE_50HZ;
+    } else if (rate <= 100) {
+        bmiRate = BMI160_ACCEL_RATE_100HZ;
+    } else if (rate <= 200) {
+        bmiRate = BMI160_ACCEL_RATE_200HZ;
+    } else if (rate <= 400) {
+        bmiRate = BMI160_ACCEL_RATE_400HZ;
+    } else if (rate <= 800) {
+        bmiRate = BMI160_ACCEL_RATE_800HZ;
+    } else {
+        bmiRate = BMI160_ACCEL_RATE_1600HZ;
+    }
+
+    setAccelRate(bmiRate);
 }
 
 int CurieIMUClass::getGyroRange()
 {
-    return getFullScaleGyroRange();
+    int range;
+
+    switch (getFullScaleGyroRange()) {
+        case BMI160_GYRO_RANGE_2000:
+            range = 2000;
+            break;
+
+        case BMI160_GYRO_RANGE_1000:
+            range = 1000;
+            break;
+
+        case BMI160_GYRO_RANGE_500:
+            range = 500;
+            break;
+
+        case BMI160_GYRO_RANGE_250:
+            range = 250;
+            break;
+
+        case BMI160_GYRO_RANGE_125:
+        default:
+            range = 125;
+            break;
+    }
+
+    return range;
 }
 
 void CurieIMUClass::setGyroRange(int range)
 {
-    setFullScaleGyroRange(range);
+    BMI160GyroRange bmiRange;
+
+    if (range >= 2000) {
+        bmiRange = BMI160_GYRO_RANGE_2000;
+    } else if (range >= 1000) {
+        bmiRange = BMI160_GYRO_RANGE_1000;
+    } else if (range >= 500) {
+        bmiRange = BMI160_GYRO_RANGE_500;
+    } else if (range >= 250) {
+        bmiRange = BMI160_GYRO_RANGE_250;
+    } else {
+        bmiRange = BMI160_GYRO_RANGE_125;
+    }
+
+    setFullScaleGyroRange(bmiRange);
 }
 
 int CurieIMUClass::getAccelerometerRange()
 {
-    return getFullScaleAccelRange();
+    int range;
+
+    switch (getFullScaleAccelRange()) {
+        case BMI160_ACCEL_RANGE_2G:
+            range = 2;
+            break;
+
+        case BMI160_ACCEL_RANGE_4G:
+            range = 4;
+            break;
+
+        case BMI160_ACCEL_RANGE_8G:
+            range = 8;
+            break;
+
+        case BMI160_ACCEL_RANGE_16G:
+        default:
+            range = 16;
+            break;
+    }
+
+    return range;
 }
 
 void CurieIMUClass::setAccelerometerRange(int range)
 {
-    setFullScaleAccelRange(range);
+    BMI160AccelRange bmiRange;
+
+    if (range <= 2) {
+        bmiRange = BMI160_ACCEL_RANGE_2G;
+    } else if (range <= 4) {
+        bmiRange = BMI160_ACCEL_RANGE_4G;
+    } else if (range <= 8) {
+        bmiRange = BMI160_ACCEL_RANGE_8G;
+    } else {
+        bmiRange = BMI160_ACCEL_RANGE_16G;
+    }
+
+    setFullScaleAccelRange(bmiRange);
 }
 
 void CurieIMUClass::autoCalibrateGyroOffset()
@@ -253,7 +439,7 @@ void CurieIMUClass::setDetectionThreshold(int feature, int threshold)
     }
 }
 
-int CurieIMUClass::getDetectionDuration(int feature)
+float CurieIMUClass::getDetectionDuration(int feature)
 {
     switch (feature) {
         case CURIE_IMU_FREEFALL:
@@ -286,7 +472,7 @@ int CurieIMUClass::getDetectionDuration(int feature)
     }
 }
 
-void CurieIMUClass::setDetectionDuration(int feature, int value)
+void CurieIMUClass::setDetectionDuration(int feature, float value)
 {
     switch (feature) {
         case CURIE_IMU_FREEFALL:
@@ -324,6 +510,601 @@ void CurieIMUClass::setDetectionDuration(int feature, int value)
         default:
             break;
     }
+}
+
+float CurieIMUClass::getFreefallDetectionDuration()
+{
+    int bmiDuration = BMI160Class::getFreefallDetectionDuration();
+
+    return ((bmiDuration + 1) * 2.5);
+}
+
+void CurieIMUClass::setFreefallDetectionDuration(float duration)
+{
+    int bmiDuration = (duration - 2.5) / 2.5;
+
+    BMI160Class::setFreefallDetectionDuration(bmiDuration);
+}
+
+int CurieIMUClass::getShockDetectionDuration()
+{
+    int duration;
+
+    switch (BMI160Class::getShockDetectionDuration()) {
+        case BMI160_TAP_SHOCK_DURATION_50MS:
+            duration = 50;
+            break;
+
+        case BMI160_TAP_SHOCK_DURATION_75MS:
+        default:
+            duration = 75;
+            break;
+    }
+
+    return duration;
+}
+void CurieIMUClass::setShockDetectionDuration(int duration)
+{
+    BMI160TapShockDuration bmiDuration;
+
+    if (duration <= 50) {
+        bmiDuration = BMI160_TAP_SHOCK_DURATION_50MS;
+    } else {
+        bmiDuration = BMI160_TAP_SHOCK_DURATION_75MS;
+    }
+
+    BMI160Class::setShockDetectionDuration(bmiDuration);
+}
+
+float CurieIMUClass::getMotionDetectionDuration()
+{
+    int bmiDuration = BMI160Class::getMotionDetectionDuration();
+
+    return (bmiDuration / getAccelerometerRate());
+
+
+}
+void CurieIMUClass::setMotionDetectionDuration(float duration)
+{
+    int bmiDuration = (duration * getAccelerometerRate());
+
+    if (bmiDuration < 1) {
+        bmiDuration = 1;
+    } else if (bmiDuration > 4) {
+        bmiDuration = 4;
+    }
+
+    BMI160Class::setMotionDetectionDuration(bmiDuration);
+}
+
+float CurieIMUClass::getZeroMotionDetectionDuration()
+{
+    float duration;
+
+    switch (BMI160Class::getZeroMotionDetectionDuration()) {
+        case BMI160_ZERO_MOTION_DURATION_1_28S:
+            duration = BMI160_ZERO_MOTION_DURATION_1_28S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_2_56S:
+            duration = BMI160_ZERO_MOTION_DURATION_2_56S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_3_84S:
+            duration = BMI160_ZERO_MOTION_DURATION_3_84S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_5_12S:
+            duration = BMI160_ZERO_MOTION_DURATION_5_12S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_6_40S:
+            duration = BMI160_ZERO_MOTION_DURATION_6_40S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_7_68S:
+            duration = BMI160_ZERO_MOTION_DURATION_7_68S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_8_96S:
+            duration = BMI160_ZERO_MOTION_DURATION_8_96S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_10_24S:
+            duration = BMI160_ZERO_MOTION_DURATION_10_24S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_11_52S:
+            duration = BMI160_ZERO_MOTION_DURATION_11_52S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_12_80S:
+            duration = BMI160_ZERO_MOTION_DURATION_12_80S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_14_08S:
+            duration = BMI160_ZERO_MOTION_DURATION_14_08S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_15_36S:
+            duration = BMI160_ZERO_MOTION_DURATION_15_36S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_16_64S:
+            duration = BMI160_ZERO_MOTION_DURATION_16_64S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_17_92S:
+            duration = BMI160_ZERO_MOTION_DURATION_17_92S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_19_20S:
+            duration = BMI160_ZERO_MOTION_DURATION_19_20S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_20_48S:
+            duration = BMI160_ZERO_MOTION_DURATION_20_48S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_25_60S:
+            duration = BMI160_ZERO_MOTION_DURATION_25_60S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_30_72S:
+            duration = BMI160_ZERO_MOTION_DURATION_30_72S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_35_84S:
+            duration = BMI160_ZERO_MOTION_DURATION_35_84S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_40_96S:
+            duration = BMI160_ZERO_MOTION_DURATION_40_96S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_46_08S:
+            duration = BMI160_ZERO_MOTION_DURATION_46_08S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_51_20S:
+            duration = BMI160_ZERO_MOTION_DURATION_51_20S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_56_32S:
+            duration = BMI160_ZERO_MOTION_DURATION_56_32S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_61_44S:
+            duration = BMI160_ZERO_MOTION_DURATION_61_44S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_66_56S:
+            duration = BMI160_ZERO_MOTION_DURATION_66_56S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_71_68S:
+            duration = BMI160_ZERO_MOTION_DURATION_71_68S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_76_80S:
+            duration = BMI160_ZERO_MOTION_DURATION_76_80S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_81_92S:
+            duration = BMI160_ZERO_MOTION_DURATION_81_92S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_87_04S:
+            duration = BMI160_ZERO_MOTION_DURATION_87_04S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_92_16S:
+            duration = BMI160_ZERO_MOTION_DURATION_92_16S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_97_28S:
+            duration = BMI160_ZERO_MOTION_DURATION_97_28S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_102_40S:
+            duration = BMI160_ZERO_MOTION_DURATION_102_40S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_112_64S:
+            duration = BMI160_ZERO_MOTION_DURATION_112_64S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_122_88S:
+            duration = BMI160_ZERO_MOTION_DURATION_122_88S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_133_12S:
+            duration = BMI160_ZERO_MOTION_DURATION_133_12S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_143_36S:
+            duration = BMI160_ZERO_MOTION_DURATION_143_36S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_153_60S:
+            duration = BMI160_ZERO_MOTION_DURATION_153_60S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_163_84S:
+            duration = BMI160_ZERO_MOTION_DURATION_163_84S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_174_08S:
+            duration = BMI160_ZERO_MOTION_DURATION_174_08S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_184_32S:
+            duration = BMI160_ZERO_MOTION_DURATION_184_32S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_194_56S:
+            duration = BMI160_ZERO_MOTION_DURATION_194_56S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_204_80S:
+            duration = BMI160_ZERO_MOTION_DURATION_204_80S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_215_04S:
+            duration = BMI160_ZERO_MOTION_DURATION_215_04S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_225_28S:
+            duration = BMI160_ZERO_MOTION_DURATION_225_28S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_235_52S:
+            duration = BMI160_ZERO_MOTION_DURATION_235_52S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_245_76S:
+            duration = BMI160_ZERO_MOTION_DURATION_245_76S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_256_00S:
+            duration = BMI160_ZERO_MOTION_DURATION_256_00S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_266_24S:
+            duration = BMI160_ZERO_MOTION_DURATION_266_24S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_276_48S:
+            duration = BMI160_ZERO_MOTION_DURATION_276_48S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_286_72S:
+            duration = BMI160_ZERO_MOTION_DURATION_286_72S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_296_96S:
+            duration = BMI160_ZERO_MOTION_DURATION_296_96S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_307_20S:
+            duration = BMI160_ZERO_MOTION_DURATION_307_20S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_317_44S:
+            duration = BMI160_ZERO_MOTION_DURATION_317_44S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_327_68S:
+            duration = BMI160_ZERO_MOTION_DURATION_327_68S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_337_92S:
+            duration = BMI160_ZERO_MOTION_DURATION_337_92S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_348_16S:
+            duration = BMI160_ZERO_MOTION_DURATION_348_16S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_358_40S:
+            duration = BMI160_ZERO_MOTION_DURATION_358_40S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_368_64S:
+            duration = BMI160_ZERO_MOTION_DURATION_368_64S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_378_88S:
+            duration = BMI160_ZERO_MOTION_DURATION_378_88S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_389_12S:
+            duration = BMI160_ZERO_MOTION_DURATION_389_12S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_399_36S:
+            duration = BMI160_ZERO_MOTION_DURATION_399_36S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_409_60S:
+            duration = BMI160_ZERO_MOTION_DURATION_409_60S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_419_84S:
+            duration = BMI160_ZERO_MOTION_DURATION_419_84S;
+            break;
+
+        case BMI160_ZERO_MOTION_DURATION_430_08S:
+        default:
+            duration = BMI160_ZERO_MOTION_DURATION_430_08S;
+            break;
+    }
+
+    return duration;
+}
+void CurieIMUClass::setZeroMotionDetectionDuration(float duration)
+{
+    BMI160ZeroMotionDuration bmiDuration;
+
+    if (duration <= 1.28) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_1_28S;
+    } else if (duration <= 2.56) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_2_56S;
+    } else if (duration <= 3.84) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_3_84S;
+    } else if (duration <= 5.12) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_5_12S;
+    } else if (duration <= 6.40) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_6_40S;
+    } else if (duration <= 7.68) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_7_68S;
+    } else if (duration <= 8.96) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_8_96S;
+    } else if (duration <= 10.24) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_10_24S;
+    } else if (duration <= 11.52) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_11_52S;
+    } else if (duration <= 12.80) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_12_80S;
+    } else if (duration <= 14.08) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_14_08S;
+    } else if (duration <= 15.36) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_15_36S;
+    } else if (duration <= 16.64) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_16_64S;
+    } else if (duration <= 17.92) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_17_92S;
+    } else if (duration <= 19.20) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_19_20S;
+    } else if (duration <= 20.48) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_20_48S;
+    } else if (duration <= 25.60) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_25_60S;
+    } else if (duration <= 30.72) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_30_72S;
+    } else if (duration <= 35.84) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_35_84S;
+    } else if (duration <= 40.96) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_40_96S;
+    } else if (duration <= 46.08) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_46_08S;
+    } else if (duration <= 51.20) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_51_20S;
+    } else if (duration <= 56.32) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_56_32S;
+    } else if (duration <= 61.44) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_61_44S;
+    } else if (duration <= 66.56) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_66_56S;
+    } else if (duration <= 71.68) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_71_68S;
+    } else if (duration <= 76.80) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_76_80S;
+    } else if (duration <= 81.92) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_81_92S;
+    } else if (duration <= 87.04) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_87_04S;
+    } else if (duration <= 92.16) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_92_16S;
+    } else if (duration <= 97.28) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_97_28S;
+    } else if (duration <= 102.40) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_102_40S;
+    } else if (duration <= 112.64) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_112_64S;
+    } else if (duration <= 122.88) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_122_88S;
+    } else if (duration <= 133.12) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_133_12S;
+    } else if (duration <= 143.36) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_143_36S;
+    } else if (duration <= 153.60) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_153_60S;
+    } else if (duration <= 163.84) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_163_84S;
+    } else if (duration <= 174.08) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_174_08S;
+    } else if (duration <= 184.32) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_184_32S;
+    } else if (duration <= 194.56) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_194_56S;
+    } else if (duration <= 204.80) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_204_80S;
+    } else if (duration <= 215.04) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_215_04S;
+    } else if (duration <= 225.28) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_225_28S;
+    } else if (duration <= 235.52) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_235_52S;
+    } else if (duration <= 245.76) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_245_76S;
+    } else if (duration <= 256.00) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_256_00S;
+    } else if (duration <= 266.24) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_266_24S;
+    } else if (duration <= 276.48) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_276_48S;
+    } else if (duration <= 286.72) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_286_72S;
+    } else if (duration <= 296.96) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_296_96S;
+    } else if (duration <= 307.20) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_307_20S;
+    } else if (duration <= 317.44) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_317_44S;
+    } else if (duration <= 327.68) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_327_68S;
+    } else if (duration <= 337.92) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_337_92S;
+    } else if (duration <= 348.16) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_348_16S;
+    } else if (duration <= 358.40) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_358_40S;
+    } else if (duration <= 368.64) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_368_64S;
+    } else if (duration <= 378.88) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_378_88S;
+    } else if (duration <= 389.12) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_389_12S;
+    } else if (duration <= 399.36) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_399_36S;
+    } else if (duration <= 409.60) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_409_60S;
+    } else if (duration <= 419.84) {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_419_84S;
+    } else {
+        bmiDuration = BMI160_ZERO_MOTION_DURATION_430_08S;
+    }
+
+    BMI160Class::setZeroMotionDetectionDuration(bmiDuration);
+}
+
+int CurieIMUClass::getTapShockDuration()
+{
+    int duration;
+
+    switch (BMI160Class::getTapShockDuration()) {
+        case BMI160_TAP_SHOCK_DURATION_50MS:
+            duration = 50;
+            break;
+
+        case BMI160_TAP_SHOCK_DURATION_75MS:
+        default:
+            duration = 75;
+            break;
+    }
+
+    return duration;
+}
+
+void CurieIMUClass::setTapShockDuration(int duration)
+{
+    BMI160TapShockDuration bmiDuration;
+
+    if (duration <= 50) {
+        bmiDuration = BMI160_TAP_SHOCK_DURATION_50MS;
+    } else {
+        bmiDuration = BMI160_TAP_SHOCK_DURATION_75MS;
+    }
+
+    BMI160Class::setTapShockDuration(bmiDuration);
+}
+
+int CurieIMUClass::getTapQuietDuration()
+{
+    int duration;
+
+    switch (BMI160Class::getTapQuietDuration()) {
+        case BMI160_TAP_QUIET_DURATION_30MS:
+            duration = 30;
+            break;
+
+        case BMI160_TAP_QUIET_DURATION_20MS:
+        default:
+            duration = 20;
+            break;
+    }
+
+    return duration;
+}
+
+void CurieIMUClass::setTapQuietDuration(int duration)
+{
+    BMI160TapQuietDuration bmiDuration;
+
+    if (duration >= 30) {
+        bmiDuration = BMI160_TAP_QUIET_DURATION_30MS;
+    } else {
+        bmiDuration = BMI160_TAP_QUIET_DURATION_20MS;
+    }
+
+    BMI160Class::setTapQuietDuration(bmiDuration);
+}
+
+int CurieIMUClass::getDoubleTapDetectionDuration()
+{
+    int duration;
+
+    switch (BMI160Class::getDoubleTapDetectionDuration()) {
+        case BMI160_DOUBLE_TAP_DURATION_50MS:
+            duration = 50;
+            break;
+
+        case BMI160_DOUBLE_TAP_DURATION_100MS:
+            duration = 100;
+            break;
+
+        case BMI160_DOUBLE_TAP_DURATION_150MS:
+            duration = 150;
+            break;
+
+        case BMI160_DOUBLE_TAP_DURATION_200MS:
+            duration = 200;
+            break;
+
+        case BMI160_DOUBLE_TAP_DURATION_250MS:
+            duration = 250;
+            break;
+
+        case BMI160_DOUBLE_TAP_DURATION_375MS:
+            duration = 375;
+            break;
+
+        case BMI160_DOUBLE_TAP_DURATION_500MS:
+            duration = 500;
+            break;
+
+        case BMI160_DOUBLE_TAP_DURATION_700MS:
+        default:
+            duration = 700;
+            break;
+    }
+
+    return duration;
+}
+void CurieIMUClass::setDoubleTapDetectionDuration(int duration)
+{
+    BMI160DoubleTapDuration bmiDuration;
+
+    if (duration <= 50) {
+        bmiDuration = BMI160_DOUBLE_TAP_DURATION_50MS;
+    } else if (duration <= 100) {
+        bmiDuration = BMI160_DOUBLE_TAP_DURATION_100MS;
+    } else if (duration <= 150) {
+        bmiDuration = BMI160_DOUBLE_TAP_DURATION_150MS;
+    } else if (duration <= 200) {
+        bmiDuration = BMI160_DOUBLE_TAP_DURATION_200MS;
+    } else if (duration <= 250) {
+        bmiDuration = BMI160_DOUBLE_TAP_DURATION_250MS;
+    } else if (duration <= 275) {
+        bmiDuration = BMI160_DOUBLE_TAP_DURATION_375MS;
+    } else if (duration <= 500) {
+        bmiDuration = BMI160_DOUBLE_TAP_DURATION_500MS;
+    } else {
+        bmiDuration = BMI160_DOUBLE_TAP_DURATION_700MS;
+    }
+
+    BMI160Class::setDoubleTapDetectionDuration(bmiDuration);
 }
 
 void CurieIMUClass::enableInterrupt(int feature, bool enabled)
