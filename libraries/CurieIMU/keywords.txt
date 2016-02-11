@@ -44,7 +44,7 @@ setDetectionThreshold	KEYWORD1
 getDetectionDuration	KEYWORD1
 setDetectionDuration	KEYWORD1
 
-enableInterrupt	KEYWORD1
+interrupts	KEYWORD1
 noInterrupts	KEYWORD1
 interruptsEnabled	KEYWORD1
 
