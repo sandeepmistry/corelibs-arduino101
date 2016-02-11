@@ -857,260 +857,260 @@ float CurieIMUClass::getZeroMotionDetectionDuration()
 
     switch (BMI160Class::getZeroMotionDetectionDuration()) {
         case BMI160_ZERO_MOTION_DURATION_1_28S:
-            duration = BMI160_ZERO_MOTION_DURATION_1_28S;
+            duration = 1.28;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_2_56S:
-            duration = BMI160_ZERO_MOTION_DURATION_2_56S;
+            duration = 2.56;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_3_84S:
-            duration = BMI160_ZERO_MOTION_DURATION_3_84S;
+            duration = 3.84;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_5_12S:
-            duration = BMI160_ZERO_MOTION_DURATION_5_12S;
+            duration = 5.12;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_6_40S:
-            duration = BMI160_ZERO_MOTION_DURATION_6_40S;
+            duration = 6.40;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_7_68S:
-            duration = BMI160_ZERO_MOTION_DURATION_7_68S;
+            duration = 7.68;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_8_96S:
-            duration = BMI160_ZERO_MOTION_DURATION_8_96S;
+            duration = 8.96;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_10_24S:
-            duration = BMI160_ZERO_MOTION_DURATION_10_24S;
+            duration = 10.24;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_11_52S:
-            duration = BMI160_ZERO_MOTION_DURATION_11_52S;
+            duration = 11.52;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_12_80S:
-            duration = BMI160_ZERO_MOTION_DURATION_12_80S;
+            duration = 12.80;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_14_08S:
-            duration = BMI160_ZERO_MOTION_DURATION_14_08S;
+            duration = 14.08;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_15_36S:
-            duration = BMI160_ZERO_MOTION_DURATION_15_36S;
+            duration = 15.36;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_16_64S:
-            duration = BMI160_ZERO_MOTION_DURATION_16_64S;
+            duration = 16.64;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_17_92S:
-            duration = BMI160_ZERO_MOTION_DURATION_17_92S;
+            duration = 17.92;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_19_20S:
-            duration = BMI160_ZERO_MOTION_DURATION_19_20S;
+            duration = 19.20;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_20_48S:
-            duration = BMI160_ZERO_MOTION_DURATION_20_48S;
+            duration = 20.48;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_25_60S:
-            duration = BMI160_ZERO_MOTION_DURATION_25_60S;
+            duration = 25.60;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_30_72S:
-            duration = BMI160_ZERO_MOTION_DURATION_30_72S;
+            duration = 30.72;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_35_84S:
-            duration = BMI160_ZERO_MOTION_DURATION_35_84S;
+            duration = 35.84;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_40_96S:
-            duration = BMI160_ZERO_MOTION_DURATION_40_96S;
+            duration = 40.96;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_46_08S:
-            duration = BMI160_ZERO_MOTION_DURATION_46_08S;
+            duration = 46.08;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_51_20S:
-            duration = BMI160_ZERO_MOTION_DURATION_51_20S;
+            duration = 51.20;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_56_32S:
-            duration = BMI160_ZERO_MOTION_DURATION_56_32S;
+            duration = 56.32;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_61_44S:
-            duration = BMI160_ZERO_MOTION_DURATION_61_44S;
+            duration = 61.44;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_66_56S:
-            duration = BMI160_ZERO_MOTION_DURATION_66_56S;
+            duration = 66.56;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_71_68S:
-            duration = BMI160_ZERO_MOTION_DURATION_71_68S;
+            duration = 71.68;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_76_80S:
-            duration = BMI160_ZERO_MOTION_DURATION_76_80S;
+            duration = 76.80;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_81_92S:
-            duration = BMI160_ZERO_MOTION_DURATION_81_92S;
+            duration = 81.92;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_87_04S:
-            duration = BMI160_ZERO_MOTION_DURATION_87_04S;
+            duration = 87.04;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_92_16S:
-            duration = BMI160_ZERO_MOTION_DURATION_92_16S;
+            duration = 92.16;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_97_28S:
-            duration = BMI160_ZERO_MOTION_DURATION_97_28S;
+            duration = 97.28;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_102_40S:
-            duration = BMI160_ZERO_MOTION_DURATION_102_40S;
+            duration = 102.40;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_112_64S:
-            duration = BMI160_ZERO_MOTION_DURATION_112_64S;
+            duration = 112.64;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_122_88S:
-            duration = BMI160_ZERO_MOTION_DURATION_122_88S;
+            duration = 122.88;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_133_12S:
-            duration = BMI160_ZERO_MOTION_DURATION_133_12S;
+            duration = 133.12;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_143_36S:
-            duration = BMI160_ZERO_MOTION_DURATION_143_36S;
+            duration = 143.36;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_153_60S:
-            duration = BMI160_ZERO_MOTION_DURATION_153_60S;
+            duration = 153.60;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_163_84S:
-            duration = BMI160_ZERO_MOTION_DURATION_163_84S;
+            duration = 163.84;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_174_08S:
-            duration = BMI160_ZERO_MOTION_DURATION_174_08S;
+            duration = 174.08;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_184_32S:
-            duration = BMI160_ZERO_MOTION_DURATION_184_32S;
+            duration = 184.32;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_194_56S:
-            duration = BMI160_ZERO_MOTION_DURATION_194_56S;
+            duration = 194.56;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_204_80S:
-            duration = BMI160_ZERO_MOTION_DURATION_204_80S;
+            duration = 204.80;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_215_04S:
-            duration = BMI160_ZERO_MOTION_DURATION_215_04S;
+            duration = 215.04;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_225_28S:
-            duration = BMI160_ZERO_MOTION_DURATION_225_28S;
+            duration = 225.28;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_235_52S:
-            duration = BMI160_ZERO_MOTION_DURATION_235_52S;
+            duration = 235.52;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_245_76S:
-            duration = BMI160_ZERO_MOTION_DURATION_245_76S;
+            duration = 245.76;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_256_00S:
-            duration = BMI160_ZERO_MOTION_DURATION_256_00S;
+            duration = 256.00;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_266_24S:
-            duration = BMI160_ZERO_MOTION_DURATION_266_24S;
+            duration = 266.24;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_276_48S:
-            duration = BMI160_ZERO_MOTION_DURATION_276_48S;
+            duration = 276.48;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_286_72S:
-            duration = BMI160_ZERO_MOTION_DURATION_286_72S;
+            duration = 286.72;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_296_96S:
-            duration = BMI160_ZERO_MOTION_DURATION_296_96S;
+            duration = 296.96;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_307_20S:
-            duration = BMI160_ZERO_MOTION_DURATION_307_20S;
+            duration = 307.20;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_317_44S:
-            duration = BMI160_ZERO_MOTION_DURATION_317_44S;
+            duration = 317.44;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_327_68S:
-            duration = BMI160_ZERO_MOTION_DURATION_327_68S;
+            duration = 327.68;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_337_92S:
-            duration = BMI160_ZERO_MOTION_DURATION_337_92S;
+            duration = 337.92;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_348_16S:
-            duration = BMI160_ZERO_MOTION_DURATION_348_16S;
+            duration = 348.16;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_358_40S:
-            duration = BMI160_ZERO_MOTION_DURATION_358_40S;
+            duration = 358.40;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_368_64S:
-            duration = BMI160_ZERO_MOTION_DURATION_368_64S;
+            duration = 368.64;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_378_88S:
-            duration = BMI160_ZERO_MOTION_DURATION_378_88S;
+            duration = 378.88;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_389_12S:
-            duration = BMI160_ZERO_MOTION_DURATION_389_12S;
+            duration = 389.12;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_399_36S:
-            duration = BMI160_ZERO_MOTION_DURATION_399_36S;
+            duration = 399.36;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_409_60S:
-            duration = BMI160_ZERO_MOTION_DURATION_409_60S;
+            duration = 409.60;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_419_84S:
-            duration = BMI160_ZERO_MOTION_DURATION_419_84S;
+            duration = 419.84;
             break;
 
         case BMI160_ZERO_MOTION_DURATION_430_08S:
         default:
-            duration = BMI160_ZERO_MOTION_DURATION_430_08S;
+            duration = 430.08;
             break;
     }
 
