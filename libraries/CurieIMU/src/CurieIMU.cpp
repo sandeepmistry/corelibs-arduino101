@@ -1370,7 +1370,7 @@ void CurieIMUClass::setDoubleTapDetectionDuration(int duration)
         bmiDuration = BMI160_DOUBLE_TAP_DURATION_200MS;
     } else if (duration <= 250) {
         bmiDuration = BMI160_DOUBLE_TAP_DURATION_250MS;
-    } else if (duration <= 275) {
+    } else if (duration <= 375) {
         bmiDuration = BMI160_DOUBLE_TAP_DURATION_375MS;
     } else if (duration <= 500) {
         bmiDuration = BMI160_DOUBLE_TAP_DURATION_500MS;
