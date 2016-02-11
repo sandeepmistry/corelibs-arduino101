@@ -376,7 +376,7 @@ void CurieIMUClass::setAccelerometerOffset(int axis, int offset)
     }
 }
 
-int CurieIMUClass::getDetectionThreshold(int feature)
+float CurieIMUClass::getDetectionThreshold(int feature)
 {
     switch (feature) {
         case CURIE_IMU_FREEFALL:
@@ -405,7 +405,7 @@ int CurieIMUClass::getDetectionThreshold(int feature)
     }
 }
 
-void CurieIMUClass::setDetectionThreshold(int feature, int threshold)
+void CurieIMUClass::setDetectionThreshold(int feature, float threshold)
 {
     switch (feature) {
         case CURIE_IMU_FREEFALL:
@@ -470,6 +470,272 @@ float CurieIMUClass::getDetectionDuration(int feature)
         default:
             return -1;
     }
+}
+
+float CurieIMUClass::getFreefallDetectionThreshold()
+{
+    int bmiThreshold = BMI160Class::getFreefallDetectionThreshold();
+
+    return (bmiThreshold * 7.81) + 3.91;
+}
+
+void CurieIMUClass::setFreefallDetectionThreshold(float threshold)
+{
+    int bmiThreshold = (threshold - 3.91) / 7.81;
+
+    if (bmiThreshold < 0) {
+        bmiThreshold = 0;
+    } else if (bmiThreshold > 255) {
+        bmiThreshold = 255;
+    }
+
+    BMI160Class::setFreefallDetectionThreshold(bmiThreshold);
+}
+
+float CurieIMUClass::getShockDetectionThreshold()
+{
+    int bmiThreshold = BMI160Class::getShockDetectionThreshold();
+    float step;
+    float min;
+
+    switch (getAccelerometerRange()) {
+        case 2:
+            step = 7.81;
+            min = 3.91;
+            break;
+
+        case 4:
+            step = 15.63;
+            min = 7.81;
+            break;
+
+        case 8:
+            step = 31.25;
+            min = 15.63;
+            break;
+
+        case 16:
+        default:
+            step = 62.50;
+            min = 31.25;
+            break;
+    }
+
+    return (bmiThreshold * step) + min;
+}
+
+void CurieIMUClass::setShockDetectionThreshold(float threshold)
+{
+    int bmiThreshold;
+
+    switch (getAccelerometerRange()) {
+        case 2:
+            bmiThreshold = (threshold - 3.91) / 7.81;
+            break;
+
+        case 4:
+            bmiThreshold = (threshold - 7.81) / 15.6;
+            break;
+
+        case 8:
+            bmiThreshold = (threshold - 15.63) / 31.25;
+            break;
+
+        case 16:
+        default:
+            bmiThreshold = (threshold - 31.25) / 62.50;
+            break;
+    }
+
+    if (bmiThreshold < 0) {
+        bmiThreshold = 0;
+    } else if (bmiThreshold > 255) {
+        bmiThreshold = 255;
+    }
+
+    BMI160Class::setShockDetectionThreshold(bmiThreshold);
+}
+
+float CurieIMUClass::getMotionDetectionThreshold()
+{
+    int bmiThreshold = BMI160Class::getMotionDetectionThreshold();
+    float step;
+
+    switch (getAccelerometerRange()) {
+        case 2:
+            step = 3.91;
+            break;
+
+        case 4:
+            step = 7.81;
+            break;
+
+        case 8:
+            step = 15.63;
+            break;
+
+        case 16:
+        default:
+            step = 31.25;
+            break;
+    }
+
+    return (bmiThreshold * step);
+}
+
+void CurieIMUClass::setMotionDetectionThreshold(float threshold)
+{
+    int bmiThreshold;
+
+    switch (getAccelerometerRange()) {
+        case 2:
+            bmiThreshold = threshold / 3.91;
+            break;
+
+        case 4:
+            bmiThreshold = threshold / 7.81;
+            break;
+
+        case 8:
+            bmiThreshold = threshold / 15.63;
+            break;
+
+        case 16:
+        default:
+            bmiThreshold = threshold / 31.25;
+            break;
+    }
+
+    if (bmiThreshold < 0) {
+        bmiThreshold = 0;
+    } else if (bmiThreshold > 255) {
+        bmiThreshold = 255;
+    }
+
+    BMI160Class::setMotionDetectionThreshold(bmiThreshold);
+}
+
+float CurieIMUClass::getZeroMotionDetectionThreshold()
+{
+    int bmiThreshold = BMI160Class::getZeroMotionDetectionThreshold();
+    float step;
+
+    switch (getAccelerometerRange()) {
+        case 2:
+            step = 3.91;
+            break;
+
+        case 4:
+            step = 7.81;
+            break;
+
+        case 8:
+            step = 15.63;
+            break;
+
+        case 16:
+        default:
+            step = 31.25;
+            break;
+    }
+
+    return (bmiThreshold * step);
+}
+
+void CurieIMUClass::setZeroMotionDetectionThreshold(float threshold)
+{
+    int bmiThreshold;
+
+    switch (getAccelerometerRange()) {
+        case 2:
+            bmiThreshold = threshold / 3.91;
+            break;
+
+        case 4:
+            bmiThreshold = threshold / 7.81;
+            break;
+
+        case 8:
+            bmiThreshold = threshold / 15.63;
+            break;
+
+        case 16:
+        default:
+            bmiThreshold = threshold / 31.25;
+            break;
+    }
+
+    if (bmiThreshold < 0) {
+        bmiThreshold = 0;
+    } else if (bmiThreshold > 255) {
+        bmiThreshold = 255;
+    }
+
+    BMI160Class::setZeroMotionDetectionThreshold(bmiThreshold);
+}
+
+float CurieIMUClass::getTapDetectionThreshold()
+{
+    int bmiThreshold = BMI160Class::getShockDetectionThreshold();
+    float step;
+    float min;
+
+    switch (getAccelerometerRange()) {
+        case 2:
+            step = 62.5;
+            min = 31.25;
+            break;
+
+        case 4:
+            step = 125.0;
+            min = 62.5;
+            break;
+
+        case 8:
+            step = 250.0;
+            min = 125.0;
+            break;
+
+        case 16:
+        default:
+            step = 500.0;
+            min = 250.0;
+            break;
+    }
+
+    return (bmiThreshold * step) + min;
+}
+
+void CurieIMUClass::setTapDetectionThreshold(float threshold)
+{
+    int bmiThreshold;
+
+    switch (getAccelerometerRange()) {
+        case 2:
+            bmiThreshold = (threshold - 31.25) / 62.5;
+            break;
+
+        case 4:
+            bmiThreshold = (threshold - 62.5) / 125.0;
+            break;
+
+        case 8:
+            bmiThreshold = (threshold - 125.0) / 250.0;
+            break;
+
+        case 16:
+        default:
+            bmiThreshold = (threshold - 2500) / 500.0;
+            break;
+    }
+
+    if (bmiThreshold < 0) {
+        bmiThreshold = 0;
+    } else if (bmiThreshold > 255) {
+        bmiThreshold = 255;
+    }
+
+    BMI160Class::setTapDetectionThreshold(bmiThreshold);
 }
 
 void CurieIMUClass::setDetectionDuration(int feature, float value)

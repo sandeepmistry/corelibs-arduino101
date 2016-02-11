@@ -35,7 +35,7 @@ void setup() {
   CurieIMU.setAccelerometerRange(4);
 
   // Reduce threshold to allow detection of weaker taps (>= 750mg)
-  CurieIMU.setDetectionThreshold(CURIE_IMU_TAP, 6); // (6 x 125mg)
+  CurieIMU.setDetectionThreshold(CURIE_IMU_TAP, 750); // (750mg)
 
   // Set the time window for 2 taps to be registered as a double-tap (<= 250 milliseconds)
   CurieIMU.setDetectionDuration(CURIE_IMU_DOUBLE_TAP, 250);

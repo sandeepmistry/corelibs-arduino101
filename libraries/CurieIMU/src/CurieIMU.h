@@ -126,11 +126,33 @@ class CurieIMUClass : public BMI160Class {
         void setGyroOffset(int axis, int offset);
         void setAccelerometerOffset(int axis, int offset);
 
-        int getDetectionThreshold(int feature);
-        void setDetectionThreshold(int feature, int threshold);
+        // supported values:
+        //   CURIE_IMU_FREEFALL: 3.91 to 1995.46 (mg), in steps of 7.81 mg
+        //   CURIE_IMU_SHOCK:
+        //       2G: 3.91 to 1995.46 (mg), in steps of 7.81 mg
+        //       4G: 7.81 to 3993.46 (mg), in steps of 15.63 mg
+        //       8G: 15.63 to 7984.38 (mg), in steps of 31.25 mg 
+        //       16G: 31.25 to 15968.75 (mg), in steps of 62.50 mg
+        //   CURIE_IMU_MOTION:
+        //       2G: 0 to 997.05 (mg), in steps of 3.91 mg
+        //       4G: 0 to 1991.55 (mg), in steps of 7.81 mg
+        //       8G: 0 to 3985.65 (mg), in steps of 15.63 mg 
+        //       16G: 0 to 7968.75 (mg), in steps of 31.25 mg
+        //   CURIE_IMU_ZERO_MOTION:
+        //       2G: 0 to 997.05 (mg), in steps of 3.91 mg
+        //       4G: 0 to 1991.55 (mg), in steps of 7.81 mg
+        //       8G: 0 to 3985.65 (mg), in steps of 15.63 mg 
+        //       16G: 0 to 7968.75 (mg), in steps of 31.25 mg
+        //   CURIE_IMU_TAP:
+        //       2G: 31.25 to 7968.75 (mg), in steps of 62.5 mg
+        //       4G: 62.50 to 31937.50 (mg), in steps of 125.0 mg
+        //       8G: 125.0 to 63875.00 (mg), in steps of 250.0 mg 
+        //       16G: 250.0 to 127750.00 (mg), in steps of 500 mg
+        float getDetectionThreshold(int feature);
+        void setDetectionThreshold(int feature, float threshold);
 
         // supported values:
-        //   CURIE_IMU_FREEFALL: 2.5 to 637.5 (ms), in steps of 2.5 ms 
+        //   CURIE_IMU_FREEFALL: 2.5 to 637.5 (ms), in steps of 2.5 ms
         //   CURIE_IMU_SHOCK: 50, 75 (ms)
         //   CURIE_IMU_MOTION: [1 - 4] / getAccelerometerRate() S
         //   CURIE_IMU_ZERO_MOTION: 1.28, 2.56, 3.84, 5.12, 6.40, 7.68, 8.96, 
@@ -177,6 +199,17 @@ class CurieIMUClass : public BMI160Class {
 
     private:
         int serial_buffer_transfer(uint8_t *buf, unsigned tx_cnt, unsigned rx_cnt);
+
+        float getFreefallDetectionThreshold();
+        void setFreefallDetectionThreshold(float threshold);
+        float getShockDetectionThreshold();
+        void setShockDetectionThreshold(float threshold);
+        float getMotionDetectionThreshold();
+        void setMotionDetectionThreshold(float threshold);
+        float getZeroMotionDetectionThreshold();
+        void setZeroMotionDetectionThreshold(float threshold);
+        float getTapDetectionThreshold();
+        void setTapDetectionThreshold(float threshold);
 
         float getFreefallDetectionDuration();
         void setFreefallDetectionDuration(float duration);
