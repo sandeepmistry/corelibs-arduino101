@@ -115,8 +115,8 @@ class CurieIMUClass : public BMI160Class {
         void autoCalibrateGyroOffset();
         void autoCalibrateAccelerometerOffset(int axis, int target);
 
-        void enableGyroOffset(bool state);
-        void enableAccelerometerOffset(bool state);
+        void noGyroOffset();
+        void noAccelerometerOffset();
         bool gyroOffsetEnabled();
         bool accelerometerOffsetEnabled();
 

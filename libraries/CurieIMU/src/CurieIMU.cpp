@@ -286,6 +286,8 @@ void CurieIMUClass::setAccelerometerRange(int range)
 void CurieIMUClass::autoCalibrateGyroOffset()
 {
     BMI160Class::autoCalibrateGyroOffset();
+
+    setGyroOffsetEnabled(true);
 }
 
 void CurieIMUClass::autoCalibrateAccelerometerOffset(int axis, int target)
@@ -306,16 +308,18 @@ void CurieIMUClass::autoCalibrateAccelerometerOffset(int axis, int target)
         default:
             break;
     }
+
+    setAccelOffsetEnabled(true);
 }
 
-void CurieIMUClass::enableGyroOffset(bool state)
+void CurieIMUClass::noGyroOffset()
 {
-    setGyroOffsetEnabled(state);
+    setGyroOffsetEnabled(false);
 }
 
-void CurieIMUClass::enableAccelerometerOffset(bool state)
+void CurieIMUClass::noAccelerometerOffset()
 {
-    setAccelOffsetEnabled(state);
+    setAccelOffsetEnabled(false);
 }
 
 bool CurieIMUClass::gyroOffsetEnabled()
@@ -363,6 +367,8 @@ void CurieIMUClass::setGyroOffset(int axis, int offset)
     } else if (axis == Z_AXIS) {
         setZGyroOffset(axis);
     }
+
+    setGyroOffsetEnabled(true);
 }
 
 void CurieIMUClass::setAccelerometerOffset(int axis, int offset)
@@ -374,6 +380,8 @@ void CurieIMUClass::setAccelerometerOffset(int axis, int offset)
     } else if (axis == Z_AXIS) {
         setZAccelOffset(axis);
     }
+
+    setAccelOffsetEnabled(true);
 }
 
 float CurieIMUClass::getDetectionThreshold(int feature)

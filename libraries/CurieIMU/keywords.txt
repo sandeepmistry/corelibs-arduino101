@@ -27,8 +27,8 @@ setAccelerometerRange	KEYWORD1
 autoCalibrateGyroOffset	KEYWORD1
 autoCalibrateAccelerometerOffset	KEYWORD1
 
-enableGyroOffset	KEYWORD1
-enableAccelerometerOffset	KEYWORD1
+noGyroOffset	KEYWORD1
+noAccelerometerOffset	KEYWORD1
 gyroOffsetEnabled	KEYWORD1
 accelerometerOffsetEnabled	KEYWORD1
 
