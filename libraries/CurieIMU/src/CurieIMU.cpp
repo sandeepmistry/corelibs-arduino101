@@ -684,7 +684,7 @@ void CurieIMUClass::setZeroMotionDetectionThreshold(float threshold)
 
 float CurieIMUClass::getTapDetectionThreshold()
 {
-    int bmiThreshold = BMI160Class::getShockDetectionThreshold();
+    int bmiThreshold = BMI160Class::getTapDetectionThreshold();
     float step;
     float min;
 
