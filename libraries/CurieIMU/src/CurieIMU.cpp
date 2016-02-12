@@ -797,6 +797,12 @@ void CurieIMUClass::setFreefallDetectionDuration(float duration)
 {
     int bmiDuration = (duration - 2.5) / 2.5;
 
+    if (bmiDuration < 0) {
+        bmiDuration = 0;
+    } else if (bmiDuration > 255) {
+        bmiDuration = 255;
+    }
+
     BMI160Class::setFreefallDetectionDuration(bmiDuration);
 }
 
