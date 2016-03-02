@@ -1,0 +1,3 @@
+[submodule "libraries/CurieTime/src/api"]
+	path = libraries/CurieTime/src/api
+	url = https://github.com/sandeepmistry/ArduinoTimeAPI.git
